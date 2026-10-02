@@ -97,7 +97,7 @@ kbd {
   position: absolute; top: 12px; left: 12px;
   display: flex; gap: 10px; align-items: center;
   padding: 8px 14px 8px 8px;
-  max-width: calc(100vw - 230px);
+  max-width: calc(100vw - 290px);
 }
 .hud-name { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hud-role { color: var(--muted); font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -421,6 +421,103 @@ details.card[open] summary::after { transform: rotate(90deg); }
 #classicBody .skills-plain div { display: flex; justify-content: space-between; border-bottom: 1px dotted #ddd; }
 #classicBody a { color: #1a5fd0; }
 
+/* ---------- tombol bahasa & pengaturan ---------- */
+.lang-btn { font-family: var(--pixel); font-size: 10px; }
+#settings {
+  position: absolute; top: 64px; right: 12px;
+  display: grid; gap: 4px;
+  padding: 8px;
+  min-width: 230px;
+  z-index: 5;
+  animation: pop 0.15s ease-out;
+}
+.set-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  border: none; border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 700; text-align: left;
+}
+.set-row:hover { background: rgba(255, 255, 255, 0.12); }
+.set-row b { font-weight: 800; color: var(--gold); white-space: nowrap; }
+
+.lang-switch {
+  display: inline-flex; gap: 4px;
+  padding: 4px; margin-bottom: 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+}
+.lang-switch button {
+  border: none; border-radius: 999px;
+  padding: 6px 14px;
+  background: transparent;
+  font-weight: 800; font-size: 0.85rem;
+  color: var(--muted);
+}
+.lang-switch button.active { background: var(--gold); color: #2b1a00; }
+
+/* ---------- chat Robot Claude ---------- */
+.modal-card.chat-card { height: min(640px, 88vh); }
+.chat-card .modal-body { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+.chat { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.chat-log {
+  flex: 1; min-height: 0;
+  overflow-y: auto;
+  padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.msg {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  line-height: 1.5;
+  white-space: normal;
+  word-wrap: break-word;
+  animation: pop 0.18s ease-out;
+}
+.msg.bot { align-self: flex-start; background: rgba(255, 255, 255, 0.07); border-bottom-left-radius: 4px; }
+.msg.bot.note { background: rgba(242, 193, 78, 0.12); border: 1px dashed rgba(242, 193, 78, 0.5); }
+.msg.me { align-self: flex-end; background: #d97757; color: #fff; border-bottom-right-radius: 4px; }
+.msg.typing { color: var(--muted); display: flex; align-items: center; gap: 4px; }
+.msg.typing i {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--muted);
+  animation: bounce 1s infinite;
+}
+.msg.typing i:nth-child(2) { animation-delay: 0.15s; }
+.msg.typing i:nth-child(3) { animation-delay: 0.3s; margin-right: 6px; }
+.chat-suggest { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 18px; }
+.chat-suggest:not(:empty) { padding-bottom: 10px; }
+.chip-btn {
+  border: 1px solid rgba(217, 119, 87, 0.6);
+  background: rgba(217, 119, 87, 0.12);
+  color: #ffd2c2;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.85rem; font-weight: 700;
+}
+.chip-btn:hover { background: rgba(217, 119, 87, 0.25); }
+.chat-form { display: flex; gap: 8px; padding: 12px 18px 8px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+.chat-form input {
+  flex: 1; min-width: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  font: inherit;
+  user-select: text;
+}
+.chat-form input:focus { outline: none; border-color: #d97757; }
+.chat-form .btn:disabled { opacity: 0.5; cursor: wait; }
+.chat-foot {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 0 18px 14px;
+  font-size: 0.75rem;
+}
+.chat-foot .btn { white-space: nowrap; flex: none; }
+@keyframes bounce { 50% { transform: translateY(-4px); } }
+
 /* ---------- animations ---------- */
 @keyframes pop { from { transform: scale(0.92); opacity: 0; } }
 #prompt, #dialog { animation-name: popc; }
@@ -438,6 +535,10 @@ details.card[open] summary::after { transform: rotate(90deg); }
   .icon-btn { width: 38px; height: 38px; font-size: 1rem; }
   .hud-progress { top: 60px; font-size: 0.75rem; }
   #minimap { width: 132px; height: 96px; }
+  .hud-left { max-width: calc(100vw - 250px); }
+  .hud-right { gap: 4px; }
+  #settings { top: 56px; }
+  .msg { max-width: 92%; }
   #toasts { top: 100px; }
   /* petunjuk di kiri, tombol aksi di kanan, keduanya di atas minimap */
   #prompt {

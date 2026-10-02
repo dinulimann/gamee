@@ -1,0 +1,9 @@
+{
+  "name": "cv-quest",
+  "private": true,
+  "type": "module",
+  "description": "CV interaktif berbentuk game RPG di browser, dengan asisten AI (Claude).",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0"
+  }
+}

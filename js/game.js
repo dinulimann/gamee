@@ -5,9 +5,12 @@
 (() => {
   'use strict';
 
-  const CV = window.CV || {};
-  CV.skills = CV.skills || [];
-  CV.npcs = CV.npcs || [];
+  const CV_BASE = window.CV || {};
+  CV_BASE.skills = CV_BASE.skills || [];
+  CV_BASE.npcs = CV_BASE.npcs || [];
+  const I18N = window.I18N || { id: {} };
+  // CV aktif = CV dasar + terjemahan (kalau bahasa Inggris dipilih)
+  let CV = CV_BASE;
 
   // ---------------------------------------------------------------- utils
   const $ = (s) => document.querySelector(s);
@@ -31,6 +34,17 @@
       try { localStorage.setItem(SAVE_KEY, JSON.stringify(v)); } catch (e) { /* abaikan */ }
     },
   };
+  // gabungkan terjemahan ke data dasar; daftar digabung per urutan item
+  function mergeDeep(base, over) {
+    if (over === undefined || over === null) return base;
+    if (Array.isArray(base) && Array.isArray(over)) return base.map((b, i) => mergeDeep(b, over[i]));
+    if (base && typeof base === 'object' && !Array.isArray(base) && typeof over === 'object' && !Array.isArray(over)) {
+      const out = { ...base };
+      for (const k of Object.keys(over)) out[k] = mergeDeep(base[k], over[k]);
+      return out;
+    }
+    return over;
+  }
   const initials = (name) => {
     const w = String(name || '?').trim().split(/\s+/);
     return (w.length > 1 ? w[0][0] + w[1][0] : w[0].slice(0, 2)).toUpperCase();
@@ -73,8 +87,25 @@
     ach: saved.ach || [],
     finale: !!saved.finale,
     muted: !!saved.muted,
+    music: saved.music !== false,
+    timeMode: saved.timeMode || 'auto', // auto | day | night
+    lang: I18N[saved.lang] ? saved.lang : (/^id\b|^ms\b/i.test(navigator.language || '') ? 'id' : 'en'),
   };
   const persist = () => store.save(state);
+
+  // ---------------------------------------------------------------- bahasa
+  const lookup = (d, key) => key.split('.').reduce((o, k) => (o == null ? o : o[k]), d);
+  function t(key, vars) {
+    let v = lookup(I18N[state.lang], key);
+    if (v === undefined) v = lookup(I18N.id, key);
+    if (v === undefined) return key;
+    if (typeof v === 'string' && vars) v = v.replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined ? vars[k] : m));
+    return v;
+  }
+  function buildCV() {
+    CV = state.lang === 'en' && window.CV_EN ? mergeDeep(CV_BASE, window.CV_EN) : CV_BASE;
+  }
+  buildCV();
 
   // ---------------------------------------------------------------- world
   const TILE = 32, MW = 44, MH = 32;
@@ -84,12 +115,12 @@
   const FOUNTAIN = { x: 22 * TILE + 16, y: 15 * TILE + 16 };
 
   const SECTIONS = [
-    { id: 'about', name: 'Rumah Saya', label: 'Tentang Saya', icon: '🏠', color: '#e07a5f', roof: '#9c3d2a', tx: 7, ty: 4, path: [[9, 8], [9, 10], [17, 10], [17, 11]] },
-    { id: 'experience', name: 'Kantor Karier', label: 'Pengalaman', icon: '💼', color: '#5b8def', roof: '#2f4f9e', tx: 20, ty: 3, path: [[22, 7], [22, 11]] },
-    { id: 'education', name: 'Akademi', label: 'Pendidikan', icon: '🎓', color: '#9b6dd6', roof: '#5a3a8c', tx: 32, ty: 4, path: [[34, 8], [34, 10], [27, 10], [27, 11]] },
-    { id: 'skills', name: 'Bengkel Skill', label: 'Keahlian', icon: '🛠️', color: '#f2a541', roof: '#a8641a', tx: 7, ty: 21, path: [[9, 25], [13, 25], [13, 19], [17, 19]] },
-    { id: 'projects', name: 'Lab Proyek', label: 'Proyek', icon: '🧪', color: '#2bb3a3', roof: '#17756b', tx: 20, ty: 21, path: [[22, 25], [26, 25], [26, 19]] },
-    { id: 'contact', name: 'Kantor Pos', label: 'Kontak', icon: '✉️', color: '#e8577e', roof: '#a12a4f', tx: 31, ty: 21, path: [[33, 25], [29, 25], [29, 19], [27, 19]] },
+    { id: 'about', icon: '🏠', color: '#e07a5f', roof: '#9c3d2a', tx: 7, ty: 4, path: [[9, 8], [9, 10], [17, 10], [17, 11]] },
+    { id: 'experience', icon: '💼', color: '#5b8def', roof: '#2f4f9e', tx: 20, ty: 3, path: [[22, 7], [22, 11]] },
+    { id: 'education', icon: '🎓', color: '#9b6dd6', roof: '#5a3a8c', tx: 32, ty: 4, path: [[34, 8], [34, 10], [27, 10], [27, 11]] },
+    { id: 'skills', icon: '🛠️', color: '#f2a541', roof: '#a8641a', tx: 7, ty: 21, path: [[9, 25], [13, 25], [13, 19], [17, 19]] },
+    { id: 'projects', icon: '🧪', color: '#2bb3a3', roof: '#17756b', tx: 20, ty: 21, path: [[22, 25], [26, 25], [26, 19]] },
+    { id: 'contact', icon: '✉️', color: '#e8577e', roof: '#a12a4f', tx: 31, ty: 21, path: [[33, 25], [29, 25], [29, 19], [27, 19]] },
   ];
   SECTIONS.forEach((b) => {
     b.ex = b.tx + 2; b.ey = b.ty + BH; // tile pintu masuk (di depan pintu)
@@ -213,7 +244,7 @@
   const npcs = CV.npcs.map((n, i) => {
     const h = nearestReachable(...(n.home || [SPAWN.x - 3, SPAWN.y]));
     return {
-      i, name: n.name || 'Warga', lines: n.lines || ['Halo!'], sprite: n.sprite || NPC_SPRITES[i],
+      i, name: n.name || '?', sprite: n.sprite || NPC_SPRITES[i],
       shirt: n.shirt || '#6c757d', hair: n.hair || '#222', pants: '#3a3a4a', skin: ['#e0ac69', '#f1c27d', '#c68642'][i % 3],
       home: h, x: h.x * TILE + 16, y: h.y * TILE + 22, dir: 'down', phase: 0, moving: false,
       path: null, wait: 1 + Math.random() * 2, talking: false,
@@ -285,6 +316,62 @@
     coin() { this.seq([988, 1319], 0.06, 'square', 0.04); this.tone(200, 0.3, 'sine', 0.04, 0.25); },
   };
 
+  // ---------------------------------------------------------------- musik latar 8-bit
+  // Lagu pendek 8 birama (C - Am - F - G) yang diulang. Malam hari memakai suara yang lebih lembut.
+  const CHORDS = [[60, 64, 67], [57, 60, 64], [53, 57, 60], [55, 59, 62]];
+  const MELODY = [
+    72, 0, 76, 0, 79, 0, 76, 74, 72, 0, 0, 69, 72, 0, 0, 0,
+    69, 0, 72, 0, 77, 0, 76, 74, 74, 0, 0, 71, 74, 0, 79, 0,
+    76, 0, 79, 0, 84, 0, 81, 79, 76, 0, 72, 0, 76, 0, 0, 0,
+    77, 0, 76, 0, 74, 0, 72, 0, 71, 0, 74, 0, 72, 0, 0, 0,
+  ];
+  const ARP = [0, 1, 2, 1, 0, 1, 2, 1];
+  const Music = {
+    gain: null, timer: null, step: 0, nextT: 0, bpm: 96,
+    start() {
+      if (!Sound.ctx || !state.music) return;
+      const c = Sound.ctx;
+      if (!this.gain) { this.gain = c.createGain(); this.gain.gain.value = 0; this.gain.connect(c.destination); }
+      this.gain.gain.cancelScheduledValues(c.currentTime);
+      this.gain.gain.setTargetAtTime(1, c.currentTime, 0.5);
+      if (!this.timer) { this.nextT = c.currentTime + 0.1; this.timer = setInterval(() => this.schedule(), 60); }
+    },
+    stop() {
+      clearInterval(this.timer); this.timer = null;
+      if (this.gain && Sound.ctx) this.gain.gain.setTargetAtTime(0, Sound.ctx.currentTime, 0.2);
+    },
+    schedule() {
+      const c = Sound.ctx, dur = 60 / this.bpm / 2;
+      if (this.nextT < c.currentTime - 0.1) this.nextT = c.currentTime + 0.05; // tab sempat tidur
+      while (this.nextT < c.currentTime + 0.25) {
+        this.play(this.step, this.nextT, dur);
+        this.nextT += dur; this.step = (this.step + 1) % MELODY.length;
+      }
+    },
+    note(midi, t0, dur, type, vol) {
+      const c = Sound.ctx, o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g).connect(this.gain);
+      o.start(t0); o.stop(t0 + dur + 0.05);
+    },
+    play(i, t0, dur) {
+      const ch = CHORDS[(i >> 3) % 4], k = i & 7;
+      const night = dark > NIGHT_MAX * 0.5;
+      if (k === 0 || k === 4) this.note(ch[0] - 12, t0, dur * 3.5, 'triangle', 0.08);
+      this.note(ch[ARP[k]], t0, dur * 0.9, night ? 'sine' : 'square', night ? 0.025 : 0.01);
+      const m = MELODY[i];
+      if (m) this.note(night ? m - 12 : m, t0, dur * 1.8, night ? 'triangle' : 'square', night ? 0.06 : 0.022);
+    },
+  };
+  document.addEventListener('visibilitychange', () => {
+    if (!Sound.ctx) return;
+    if (document.hidden) Sound.ctx.suspend();
+    else if (ui.title.classList.contains('hidden')) Sound.ctx.resume();
+  });
+
   // ---------------------------------------------------------------- DOM refs
   const canvas = $('#game'), ctx = canvas.getContext('2d');
   const mm = $('#minimap'), mctx = mm.getContext('2d');
@@ -293,7 +380,7 @@
     modal: $('#modal'), modalTitle: $('#modalTitle'), modalIcon: $('#modalIcon'), modalBody: $('#modalBody'),
     quest: $('#quest'), questBody: $('#questBody'), classic: $('#classic'), classicBody: $('#classicBody'),
     title: $('#title'), dialog: $('#dialog'), dialogName: $('#dialogName'), dialogText: $('#dialogText'),
-    progress: $('#hudProgress'), sound: $('#btnSound'),
+    progress: $('#hudProgress'), settings: $('#settings'),
   };
   const isTouch = matchMedia('(pointer: coarse)').matches;
 
@@ -309,13 +396,16 @@
 
   // ---------------------------------------------------------------- achievements
   const ACH = [
-    { id: 'first_door', icon: '🚪', name: 'Tamu Pertama', desc: 'Masuki bangunan pertama' },
-    { id: 'first_gem', icon: '💎', name: 'Mata Jeli', desc: 'Temukan permata skill pertama' },
-    { id: 'talker', icon: '💬', name: 'Ramah Tamah', desc: 'Ngobrol dengan semua warga' },
-    { id: 'wish', icon: '⛲', name: 'Penuh Harapan', desc: 'Lempar koin ke air mancur' },
-    { id: 'all_sections', icon: '🗺️', name: 'Penjelajah', desc: 'Kunjungi semua bangunan' },
-    { id: 'all_gems', icon: '👑', name: 'Kolektor', desc: 'Kumpulkan semua permata skill' },
+    { id: 'first_door', icon: '🚪' },
+    { id: 'first_gem', icon: '💎' },
+    { id: 'talker', icon: '💬' },
+    { id: 'wish', icon: '⛲' },
+    { id: 'ai', icon: '🤖' },
+    { id: 'all_sections', icon: '🗺️' },
+    { id: 'all_gems', icon: '👑' },
   ];
+  const achName = (a) => t('ach.' + a.id)[0];
+  const achDesc = (a) => t('ach.' + a.id)[1];
   function unlock(id) {
     if (state.ach.includes(id)) return;
     const a = ACH.find((x) => x.id === id);
@@ -323,7 +413,7 @@
     state.ach.push(id);
     persist();
     setTimeout(() => {
-      toast(`🏆 Pencapaian terbuka: ${a.icon} ${esc(a.name)}<small>${esc(a.desc)}</small>`, 3500);
+      toast(`${t('achToast', { icon: a.icon, name: esc(achName(a)) })}<small>${esc(achDesc(a))}</small>`, 3500);
       Sound.seq([659, 784, 1047], 0.08, 'triangle', 0.05);
     }, 400);
   }
@@ -333,7 +423,8 @@
   function updateProgress() {
     const v = SECTIONS.filter((s) => state.visited.includes(s.id)).length;
     const g = gems.filter((x) => gemCollected(x.i)).length;
-    ui.progress.innerHTML = `<span title="Bangunan dikunjungi">🏠 ${v}/${SECTIONS.length}</span><span title="Permata skill">💎 ${g}/${gems.length}</span><span title="Pencapaian">🏆 ${state.ach.length}/${ACH.length}</span>`;
+    ui.progress.innerHTML = `<span title="${esc(t('pVisited'))}">🏠 ${v}/${SECTIONS.length}</span><span title="${esc(t('pGems'))}">💎 ${g}/${gems.length}</span><span title="${esc(t('pAch'))}">🏆 ${state.ach.length}/${ACH.length}</span><span title="${esc(t('pTime'))}" id="hudClock"></span>`;
+    lastClock = '';
   }
 
   // ---------------------------------------------------------------- content renderers
@@ -354,9 +445,9 @@
         </div>
       </div>
       ${(CV.about || []).map((p) => `<p>${esc(p)}</p>`).join('')}
-      ${(CV.facts || []).length ? `<h4>SOROTAN</h4><ul class="facts">${CV.facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
-      ${chipBlock('🎯 POSISI YANG DICARI', CV.lookingFor)}
-      ${chipBlock('💡 MINAT', CV.interests)}`;
+      ${(CV.facts || []).length ? `<h4>${t('hHighlights')}</h4><ul class="facts">${CV.facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
+      ${chipBlock(t('hLooking'), CV.lookingFor)}
+      ${chipBlock(t('hInterests'), CV.interests)}`;
   }
 
   function renderExperience(classic) {
@@ -368,7 +459,7 @@
           <ul>${(e.points || []).map((p) => `<li>${esc(p)}</li>`).join('')}</ul>
         </div>`).join('');
     }
-    return `<p class="muted">Ketuk setiap kartu untuk melihat detailnya.</p>` + items.map((e, i) => `
+    return `<p class="muted">${t('expHint')}</p>` + items.map((e, i) => `
       <details class="card" ${i === 0 ? 'open' : ''}>
         <summary><span>💼</span><span><div class="card-title">${esc(e.title)}</div><div class="card-sub">${joinDot(e.company, e.period)}</div></span></summary>
         <div class="card-body"><ul>${(e.points || []).map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div>
@@ -398,11 +489,12 @@
     }
     const found = gems.filter((g) => gemCollected(g.i)).length;
     const cats = {};
-    CV.skills.forEach((s, i) => { (cats[s.category || 'Lainnya'] = cats[s.category || 'Lainnya'] || []).push({ ...s, i }); });
+    const other = t('other');
+    CV.skills.forEach((s, i) => { (cats[s.category || other] = cats[s.category || other] || []).push({ ...s, i }); });
     return `
       <div class="skill-info">
-        <span>💎 Kamu menemukan <b>${found}/${gems.length}</b> permata skill. Jelajahi desa untuk membuka sisanya!</span>
-        ${found < gems.length ? `<button class="btn small" data-action="reveal">${revealSkills ? '🙈 Sembunyikan' : '👀 Intip semua'}</button>` : ''}
+        <span>💎 ${t('skillsFound', { n: found, t: gems.length })}</span>
+        ${found < gems.length ? `<button class="btn small" data-action="reveal">${revealSkills ? t('hide') : t('reveal')}</button>` : ''}
       </div>
       ${Object.entries(cats).map(([cat, list]) => `
         <h4>${esc(cat.toUpperCase())}</h4>
@@ -422,18 +514,18 @@
     if (classic) {
       return items.map((p) => `
         <div class="cv-item">
-          <div class="cv-item-head"><strong>${esc(p.name)}</strong>${linkOrText(p.link, 'tautan')}</div>
+          <div class="cv-item-head"><strong>${esc(p.name)}</strong>${linkOrText(p.link, t('link'))}</div>
           <div>${esc(p.desc)}</div>
           <div class="chips">${(p.tech || []).map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>
         </div>`).join('');
     }
-    return `<p class="muted">Ketuk proyek untuk membuka detail.</p>` + items.map((p) => `
+    return `<p class="muted">${t('projHint')}</p>` + items.map((p) => `
       <details class="card">
         <summary><span>🧪</span><span><div class="card-title">${esc(p.name)}</div><div class="card-sub">${(p.tech || []).map(esc).join(' · ')}</div></span></summary>
         <div class="card-body">
           <p style="margin-top:0">${esc(p.desc)}</p>
           <div class="chips">${(p.tech || []).map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>
-          ${p.link ? `<a class="btn small" href="${esc(p.link)}" target="_blank" rel="noopener">🔗 Lihat proyek</a>` : ''}
+          ${p.link ? `<a class="btn small" href="${esc(p.link)}" target="_blank" rel="noopener">${t('viewProject')}</a>` : ''}
         </div>
       </details>`).join('');
   }
@@ -451,10 +543,10 @@
     const links = contactLinks();
     if (classic) return links.map((l) => `${l.icon} <a href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join(' &nbsp; ');
     return `
-      <p>Terima kasih sudah mampir! Ingin bekerja sama atau sekadar menyapa? Kirim surat lewat salah satu jalur di bawah ini 📮</p>
+      <p>${t('contactIntro')}</p>
       <div class="contact-grid">
         ${links.map((l) => `<a class="btn" href="${esc(l.href)}" target="_blank" rel="noopener">${l.icon} ${esc(l.label)}</a>`).join('')}
-        ${CV.contact?.email ? `<button class="btn ghost" data-action="copy">📋 Salin email</button>` : ''}
+        ${CV.contact?.email ? `<button class="btn ghost" data-action="copy">${t('copyEmail')}</button>` : ''}
       </div>`;
   }
 
@@ -472,18 +564,18 @@
           <div style="margin-top:6px">${renderContact(true)}</div>
         </div>
       </header>
-      ${sec('Tentang Saya', (CV.about || []).map((p) => `<p>${esc(p)}</p>`).join(''))}
-      ${sec('Posisi yang Dicari', (CV.lookingFor || []).length ? `<div class="chips">${CV.lookingFor.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>` : '')}
-      ${sec('Pengalaman', renderExperience(true))}
-      ${sec('Pendidikan', renderEducation(true))}
-      ${sec('Keahlian', CV.skills.length ? renderSkills(true) : '')}
-      ${sec('Proyek', renderProjects(true))}
-      ${sec('Minat', (CV.interests || []).map(esc).join(' · '))}`;
+      ${sec(t('cAbout'), (CV.about || []).map((p) => `<p>${esc(p)}</p>`).join(''))}
+      ${sec(t('cLooking'), (CV.lookingFor || []).length ? `<div class="chips">${CV.lookingFor.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>` : '')}
+      ${sec(t('cExp'), renderExperience(true))}
+      ${sec(t('cEdu'), renderEducation(true))}
+      ${sec(t('cSkills'), CV.skills.length ? renderSkills(true) : '')}
+      ${sec(t('cProj'), renderProjects(true))}
+      ${sec(t('cInterests'), (CV.interests || []).map(esc).join(' · '))}`;
   }
 
   // ---------------------------------------------------------------- overlays
-  let modalOnClose = null, modalSection = null;
-  function openModal({ title, icon, color, html, section, onClose }) {
+  let modalOnClose = null, modalSection = null, modalKind = null;
+  function openModal({ title, icon, color, html, section, onClose, kind }) {
     ui.modalTitle.textContent = title;
     ui.modalIcon.textContent = icon || '';
     ui.modal.querySelector('.modal-card').style.setProperty('--accent', color || '#5b8def');
@@ -492,6 +584,8 @@
     ui.modal.classList.remove('hidden');
     modalOnClose = onClose || null;
     modalSection = section || null;
+    modalKind = kind || (section ? 'section' : null);
+    ui.modal.querySelector('.modal-card').classList.toggle('chat-card', modalKind === 'chat');
     Sound.open();
   }
   function closeModal() {
@@ -499,7 +593,7 @@
     ui.modal.classList.add('hidden');
     Sound.close();
     doorCooldown = 0.6;
-    const cb = modalOnClose; modalOnClose = null; modalSection = null;
+    const cb = modalOnClose; modalOnClose = null; modalSection = null; modalKind = null;
     if (cb) cb();
   }
 
@@ -526,21 +620,21 @@
     const total = SECTIONS.length + gems.length;
     const pct = total ? Math.round(((v + g) / total) * 100) : 100;
     ui.questBody.innerHTML = `
-      <p><b>Misi utama:</b> kenali ${esc(CV.name)} dengan mengunjungi semua bangunan dan mengumpulkan semua permata skill.</p>
+      <p>${t('qMain', { name: esc(CV.name) })}</p>
       <div class="progress-big"><i style="--w:${pct}%"></i></div>
-      <p class="muted" style="margin:4px 0 0">${pct}% selesai · 💎 ${g}/${gems.length} permata</p>
-      <h4>BANGUNAN</h4>
+      <p class="muted" style="margin:4px 0 0">${t('qPct', { p: pct, g, t: gems.length })}</p>
+      <h4>${t('qBuildings')}</h4>
       <ul class="quest-list">${SECTIONS.map((s) => `
         <li class="${state.visited.includes(s.id) ? 'done' : ''}">
           <span>${state.visited.includes(s.id) ? '✅' : '⬜'}</span>
           <span class="q-name">${s.icon} ${esc(s.name)} <span class="muted">· ${esc(s.label)}</span></span>
-          <button class="btn small" data-goto="${s.id}">Pergi ➜</button>
+          <button class="btn small" data-goto="${s.id}">${t('go')}</button>
         </li>`).join('')}</ul>
-      <h4>PENCAPAIAN</h4>
+      <h4>${t('qAch')}</h4>
       <div class="ach-grid">${ACH.map((a) => `
-        <div class="ach ${state.ach.includes(a.id) ? '' : 'locked'}"><span class="ach-icon">${a.icon}</span><b>${esc(a.name)}</b><div class="muted">${esc(a.desc)}</div></div>`).join('')}</div>
-      <h4>LAINNYA</h4>
-      <button class="btn ghost small" data-action="reset">🔁 Ulangi dari awal</button>`;
+        <div class="ach ${state.ach.includes(a.id) ? '' : 'locked'}"><span class="ach-icon">${a.icon}</span><b>${esc(achName(a))}</b><div class="muted">${esc(achDesc(a))}</div></div>`).join('')}</div>
+      <h4>${t('qOther')}</h4>
+      <button class="btn ghost small" data-action="reset">${t('reset')}</button>`;
     ui.quest.classList.remove('hidden');
     Sound.click();
   }
@@ -554,19 +648,7 @@
   const closeClassic = () => ui.classic.classList.add('hidden');
 
   function openHelp() {
-    openModal({
-      title: 'Cara Bermain', icon: '❔', color: '#2bb3a3',
-      html: `
-        <ul>
-          <li>🚶 Berjalan: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> atau tombol panah — atau cukup <b>klik / ketuk</b> tempat tujuan di peta.</li>
-          <li>🏠 Masuk bangunan: dekati pintunya lalu tekan <kbd>E</kbd> / <kbd>Spasi</kbd>, atau langsung klik bangunannya.</li>
-          <li>💬 Ngobrol dengan warga: klik warganya atau tekan <kbd>E</kbd> saat berada di dekatnya.</li>
-          <li>💎 Permata berkilau = skill. Jalan di atasnya untuk mengambilnya.</li>
-          <li>🗺️ Klik minimap di pojok kanan bawah untuk berjalan cepat.</li>
-          <li>⌨️ Pintasan: <kbd>Q</kbd> misi · <kbd>C</kbd> CV klasik · <kbd>M</kbd> suara · <kbd>Esc</kbd> tutup.</li>
-        </ul>
-        <p class="muted">Progresmu tersimpan otomatis di browser ini.</p>`,
-    });
+    openModal({ title: t('helpTitle'), icon: '❔', color: '#2bb3a3', html: t('help'), kind: 'help' });
   }
 
   function anyOverlay() {
@@ -578,12 +660,13 @@
   const dlg = { active: false, npc: null, lines: [], i: 0, shown: 0, last: 0 };
   function startDialog(npc) {
     player.path = null; player.target = null;
-    const lines = [...npc.lines];
+    const lines = [...((CV.npcs[npc.i] || {}).lines || ['👋'])];
     const todo = SECTIONS.find((s) => !state.visited.includes(s.id));
     const gLeft = gems.filter((g) => !gemCollected(g.i)).length;
-    if (todo) lines.push(`Ngomong-ngomong, kamu belum mampir ke ${todo.icon} ${todo.name}, lho.`);
-    else if (gLeft) lines.push(`Masih ada ${gLeft} permata skill yang belum ditemukan. Semangat!`);
-    else lines.push('Wah, kamu sudah menjelajahi semuanya. Hebat! 🎉');
+    if (dark > NIGHT_MAX * 0.5) lines.push(t('npcNight'));
+    if (todo) lines.push(t('npcTodo', { place: `${todo.icon} ${todo.name}` }));
+    else if (gLeft) lines.push(t('npcGems', { n: gLeft }));
+    else lines.push(t('npcDone'));
     Object.assign(dlg, { active: true, npc, lines, i: 0, shown: 0, last: 0 });
     npc.talking = true; npc.path = null; npc.moving = false;
     ui.dialogName.textContent = npc.name;
@@ -616,17 +699,91 @@
   }
 
   // ---------------------------------------------------------------- fountain wish
-  const WISHES = [
-    'Semoga kamu menemukan kandidat terbaik! 🍀',
-    'Koinnya tenggelam dengan anggun... harapanmu tercatat ✨',
-    'Plung! Air mancur berkilau sebentar. Pertanda baik!',
-    'Semoga harimu menyenangkan dan kodenya bebas bug 🐛🚫',
-  ];
   function makeWish() {
     Sound.coin();
     burst(FOUNTAIN.x, FOUNTAIN.y - 10, '#9ad8ff', 30);
-    toast(`🪙 ${WISHES[Math.floor(Math.random() * WISHES.length)]}`);
+    const wishes = t('wishes');
+    toast(`🪙 ${wishes[Math.floor(Math.random() * wishes.length)]}`);
     unlock('wish');
+  }
+
+  // ---------------------------------------------------------------- Robot Claude (asisten AI)
+  // Robot melayang di alun-alun. Pertanyaan dikirim ke /api/ask (Vercel Function) yang memanggil Claude.
+  const robot = { x: 25 * TILE + 16, y: 13 * TILE + 22, tx: 25, ty: 13 };
+  const chat = { msgs: [], busy: false };
+
+  function fmtAnswer(text) {
+    return esc(text)
+      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+      .replace(/^\s*[-*•]\s+/gm, '• ')
+      .replace(/\n/g, '<br>');
+  }
+  function openChat() {
+    player.path = null; player.target = null;
+    openModal({
+      title: t('aiTitle'), icon: '🤖', color: '#d97757', kind: 'chat',
+      html: `
+        <div class="chat">
+          <div class="chat-log" id="chatLog" aria-live="polite"></div>
+          <div class="chat-suggest" id="chatSuggest"></div>
+          <form class="chat-form" id="chatForm" autocomplete="off">
+            <input id="chatInput" maxlength="500" placeholder="${esc(t('aiPlaceholder'))}" aria-label="${esc(t('aiPlaceholder'))}" />
+            <button class="btn" id="chatSend" type="submit">${esc(t('aiSend'))}</button>
+          </form>
+          <div class="chat-foot">
+            <span class="muted">${esc(t('aiDisclaimer'))}</span>
+            <button class="btn ghost small" type="button" data-action="chat-clear">${esc(t('aiClear'))}</button>
+          </div>
+        </div>`,
+    });
+    renderChat();
+    if (!isTouch) setTimeout(() => $('#chatInput')?.focus(), 50);
+  }
+  function renderChat() {
+    const log = $('#chatLog');
+    if (!log || modalKind !== 'chat') return;
+    const rows = [`<div class="msg bot">${esc(t('aiIntro', { name: CV.name }))}</div>`];
+    for (const m of chat.msgs) {
+      if (m.role === 'user') rows.push(`<div class="msg me">${esc(m.content)}</div>`);
+      else rows.push(`<div class="msg bot${m.local ? ' note' : ''}">${fmtAnswer(m.content)}</div>`);
+    }
+    if (chat.busy) rows.push(`<div class="msg bot typing"><i></i><i></i><i></i> ${esc(t('aiThinking'))}</div>`);
+    log.innerHTML = rows.join('');
+    log.scrollTop = log.scrollHeight;
+    const asked = chat.msgs.some((m) => m.role === 'user');
+    $('#chatSuggest').innerHTML = asked ? '' : t('aiSuggest')
+      .map((q) => `<button class="chip-btn" type="button" data-action="ask" data-q="${esc(q)}">${esc(q)}</button>`).join('');
+    $('#chatSend').disabled = chat.busy;
+  }
+  async function askAI(q) {
+    q = String(q || '').trim().slice(0, 500);
+    if (!q || chat.busy) return;
+    const userMsg = { role: 'user', content: q };
+    chat.msgs.push(userMsg);
+    chat.busy = true;
+    Sound.click();
+    renderChat();
+    unlock('ai');
+    // riwayat yang dikirim: tanpa pesan lokal/gagal, maksimal 10 pesan terakhir, diawali pesan pengguna
+    let history = chat.msgs.filter((m) => !m.local && !m.failed).map(({ role, content }) => ({ role, content })).slice(-10);
+    while (history.length && history[0].role !== 'user') history.shift();
+    let reply = null, note = null;
+    try {
+      const r = await fetch('api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: history }) });
+      let data = {};
+      try { data = await r.json(); } catch (e) { /* bukan JSON */ }
+      if (r.ok && data.answer) reply = data.answer;
+      else if (r.status === 429) note = 'aiRate';
+      else if (data.error === 'refusal') note = 'aiRefusal';
+      else if (r.status === 404 || r.status === 405 || r.status === 503 || data.error === 'not_configured') note = 'aiOffline';
+      else note = 'aiError';
+    } catch (e) {
+      note = 'aiOffline';
+    }
+    chat.busy = false;
+    if (reply) { chat.msgs.push({ role: 'assistant', content: reply }); Sound.seq([660, 880], 0.06, 'triangle', 0.04); }
+    else { userMsg.failed = true; chat.msgs.push({ role: 'assistant', content: t(note), local: true }); Sound.nope(); }
+    renderChat();
   }
 
   // ---------------------------------------------------------------- finale
@@ -636,21 +793,21 @@
     Sound.win();
     confetti(160);
     setTimeout(() => openModal({
-      title: 'Petualangan Selesai!', icon: '🏆', color: '#f2a541',
+      title: t('finTitle'), icon: '🏆', color: '#f2a541', kind: 'finale',
       html: `
-        <p style="font-size:1.1rem">Terima kasih sudah menjelajahi seluruh desa dan mengenal <b>${esc(CV.name)}</b>! 🎉</p>
-        <p>Kamu mengunjungi ${SECTIONS.length} bangunan, mengumpulkan ${gems.length} permata skill, dan membuka ${state.ach.length} pencapaian.</p>
+        <p style="font-size:1.1rem">${t('finThanks', { name: esc(CV.name) })}</p>
+        <p>${t('finStats', { b: SECTIONS.length, g: gems.length, a: state.ach.length })}</p>
         <div class="contact-grid">
-          <button class="btn" data-action="contact">✉️ Hubungi saya</button>
-          <button class="btn ghost" data-action="classic">📄 Lihat CV lengkap</button>
-          <button class="btn ghost" data-action="reset">🔁 Main lagi</button>
+          <button class="btn" data-action="contact">${t('finContact')}</button>
+          <button class="btn ghost" data-action="classic">${t('finCV')}</button>
+          <button class="btn ghost" data-action="reset">${t('finAgain')}</button>
         </div>`,
     }), 900);
   }
 
   function resetGame() {
-    if (!confirm('Hapus progres dan mulai dari awal?')) return;
-    store.save({ muted: state.muted });
+    if (!confirm(t('resetConfirm'))) return;
+    store.save({ muted: state.muted, music: state.music, timeMode: state.timeMode, lang: state.lang });
     location.reload();
   }
 
@@ -687,10 +844,12 @@
   window.addEventListener('keydown', (e) => {
     if (!ui.title.classList.contains('hidden')) {
       if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); startGame(); }
+      else if (e.code === 'KeyL') setLang(state.lang === 'id' ? 'en' : 'id');
       return;
     }
     if (e.code === 'Escape') {
-      if (dlg.active) endDialog();
+      if (!ui.settings.classList.contains('hidden')) ui.settings.classList.add('hidden');
+      else if (dlg.active) endDialog();
       else if (!ui.modal.classList.contains('hidden')) closeModal();
       else if (!ui.quest.classList.contains('hidden')) closeQuest();
       else if (!ui.classic.classList.contains('hidden')) closeClassic();
@@ -706,6 +865,9 @@
     } else if (e.code === 'KeyQ') openQuest();
     else if (e.code === 'KeyC') openClassic();
     else if (e.code === 'KeyM') toggleSound();
+    else if (e.code === 'KeyN') toggleMusic();
+    else if (e.code === 'KeyT') toggleTime();
+    else if (e.code === 'KeyL') setLang(state.lang === 'id' ? 'en' : 'id');
     else if (e.code === 'KeyH') openHelp();
   });
   window.addEventListener('keyup', (e) => { if (KEYMAP[e.code]) keys[KEYMAP[e.code]] = false; });
@@ -717,19 +879,22 @@
   }
   const hitNpc = (w) => npcs.find((n) => Math.abs(w.x - n.x) < 14 && w.y > n.y - (sprite(n.sprite) ? CHAR_H : 36) && w.y < n.y + 6);
   const hitFountain = (w) => Math.hypot(w.x - FOUNTAIN.x, w.y - FOUNTAIN.y) < 48;
+  const hitRobot = (w) => Math.abs(w.x - robot.x) < 16 && w.y > robot.y - 54 && w.y < robot.y + 6;
 
   let hover = null;
   canvas.addEventListener('pointermove', (e) => {
     if (isTouch) return;
     const w = screenToWorld(e.clientX, e.clientY);
-    hover = hitBuilding(w) || hitNpc(w) || (hitFountain(w) ? 'fountain' : null);
+    hover = (hitRobot(w) ? robot : null) || hitBuilding(w) || hitNpc(w) || (hitFountain(w) ? 'fountain' : null);
     canvas.style.cursor = hover ? 'pointer' : 'default';
   });
   canvas.addEventListener('pointerdown', (e) => {
     Sound.init();
+    ui.settings.classList.add('hidden');
     if (anyOverlay()) return;
     if (dlg.active) { advanceDialog(); return; }
     const w = screenToWorld(e.clientX, e.clientY);
+    if (hitRobot(w)) return goToRobot();
     const b = hitBuilding(w);
     if (b) return goToBuilding(b);
     const n = hitNpc(w);
@@ -753,45 +918,131 @@
 
   // klik di dalam overlay
   document.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-close], [data-action], [data-goto]');
-    if (!t) {
+    const el = e.target.closest('[data-close], [data-action], [data-goto], [data-lang]');
+    if (!e.target.closest('#settings, #btnSettings')) ui.settings.classList.add('hidden');
+    if (el && el.dataset.lang) { Sound.init(); setLang(el.dataset.lang); return; }
+    const t2 = el;
+    if (!t2) {
       if (e.target === ui.modal) closeModal();
       else if (e.target === ui.quest) closeQuest();
       else if (e.target === ui.classic) closeClassic();
       return;
     }
-    if (t.hasAttribute('data-close')) {
-      if (t.closest('#modal')) closeModal();
-      else if (t.closest('#quest')) closeQuest();
-      else if (t.closest('#classic')) closeClassic();
-    } else if (t.dataset.goto) {
+    if (t2.hasAttribute('data-close')) {
+      if (t2.closest('#modal')) closeModal();
+      else if (t2.closest('#quest')) closeQuest();
+      else if (t2.closest('#classic')) closeClassic();
+    } else if (t2.dataset.goto) {
       closeQuest();
-      goToBuilding(SECTIONS.find((s) => s.id === t.dataset.goto));
+      goToBuilding(SECTIONS.find((s) => s.id === t2.dataset.goto));
     } else {
-      const a = t.dataset.action;
+      const a = t2.dataset.action;
       if (a === 'reveal') { revealSkills = !revealSkills; ui.modalBody.innerHTML = renderSkills(false); Sound.click(); }
       else if (a === 'copy') {
-        const done = () => toast('📋 Email disalin!');
-        try { navigator.clipboard.writeText(CV.contact.email).then(done, () => prompt('Salin email:', CV.contact.email)); }
-        catch (err) { prompt('Salin email:', CV.contact.email); }
+        const done = () => toast(t('copied'));
+        try { navigator.clipboard.writeText(CV.contact.email).then(done, () => prompt(t('copyPrompt'), CV.contact.email)); }
+        catch (err) { prompt(t('copyPrompt'), CV.contact.email); }
       } else if (a === 'reset') resetGame();
       else if (a === 'classic') { closeModal(); openClassic(); }
       else if (a === 'contact') { closeModal(); openSection(SECTIONS.find((s) => s.id === 'contact')); }
+      else if (a === 'ask') askAI(t2.dataset.q);
+      else if (a === 'chat-clear') { if (!chat.busy) { chat.msgs = []; renderChat(); } }
+      else if (a === 'sound') toggleSound();
+      else if (a === 'music') toggleMusic();
+      else if (a === 'time') toggleTime();
     }
+  });
+
+  document.addEventListener('submit', (e) => {
+    if (e.target.id !== 'chatForm') return;
+    e.preventDefault();
+    const input = $('#chatInput');
+    askAI(input.value);
+    input.value = '';
   });
 
   $('#btnQuest').onclick = () => { Sound.init(); openQuest(); };
   $('#btnCV').onclick = () => { Sound.init(); openClassic(); };
   $('#btnHelp').onclick = () => { Sound.init(); openHelp(); };
-  ui.sound.onclick = () => { Sound.init(); toggleSound(); };
+  $('#btnSettings').onclick = () => { Sound.init(); ui.settings.classList.toggle('hidden'); updateSettingsUI(); };
+  $('#btnLang').onclick = () => { Sound.init(); setLang(state.lang === 'id' ? 'en' : 'id'); };
   $('#btnPrint').onclick = () => window.print();
   $('#btnStart').onclick = startGame;
   $('#btnStartClassic').onclick = () => { startGame(); openClassic(); };
 
   function toggleSound() {
     state.muted = !state.muted; persist();
-    ui.sound.textContent = state.muted ? '🔇' : '🔊';
+    updateSettingsUI();
     if (!state.muted) Sound.click();
+  }
+  function toggleMusic() {
+    Sound.init();
+    state.music = !state.music; persist();
+    if (state.music) Music.start(); else Music.stop();
+    updateSettingsUI();
+    toast(t(state.music ? 'musicOn' : 'musicOff'), 1600);
+  }
+  function toggleTime() {
+    const order = ['auto', 'day', 'night'];
+    state.timeMode = order[(order.indexOf(state.timeMode) + 1) % order.length]; persist();
+    updateSettingsUI();
+    toast(t({ auto: 'timeAuto', day: 'timeDay', night: 'timeNight' }[state.timeMode]), 1800);
+    Sound.click();
+  }
+  const MODE_ICON = { auto: '🌗', day: '☀️', night: '🌙' };
+  function updateSettingsUI() {
+    $('#setSoundVal').textContent = state.muted ? '🔇 ' + t('off') : '🔊 ' + t('on');
+    $('#setMusicVal').textContent = state.music ? '🎵 ' + t('on') : '🔕 ' + t('off');
+    $('#setTimeVal').textContent = MODE_ICON[state.timeMode] + ' ' + t({ auto: 'modeAuto', day: 'modeDay', night: 'modeNight' }[state.timeMode]);
+  }
+
+  // ---------------------------------------------------------------- ganti bahasa
+  function applyI18n() {
+    document.documentElement.lang = state.lang;
+    SECTIONS.forEach((b) => { [b.name, b.label] = t('sec.' + b.id); });
+    npcs.forEach((n) => { n.name = (CV.npcs[n.i] || {}).name || n.name; });
+    document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-html]').forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
+    document.querySelectorAll('[data-i18n-title]').forEach((el) => {
+      el.title = t(el.dataset.i18nTitle);
+      el.setAttribute('aria-label', el.title);
+    });
+    document.querySelectorAll('[data-lang]').forEach((el) => el.classList.toggle('active', el.dataset.lang === state.lang));
+    $('#btnLang').textContent = state.lang.toUpperCase();
+    $('#hudName').textContent = CV.name || '';
+    $('#hudRole').textContent = CV.role || '';
+    $('#titleName').textContent = CV.name || '';
+    $('#titleRole').textContent = CV.role || '';
+    $('#titleTag').textContent = CV.tagline || '';
+    $('#btnStart').textContent = t(state.visited.length || state.gems.length ? 'continue' : 'start');
+    lastPromptKey = '';
+    updateProgress();
+    updateSettingsUI();
+  }
+  function setLang(l) {
+    if (!I18N[l] || l === state.lang) return;
+    state.lang = l; persist();
+    buildCV();
+    applyI18n();
+    if (dlg.active) endDialog();
+    // panel yang sedang terbuka digambar ulang dalam bahasa baru
+    if (!ui.quest.classList.contains('hidden')) openQuest();
+    if (!ui.classic.classList.contains('hidden')) ui.classicBody.innerHTML = renderClassic();
+    if (!ui.modal.classList.contains('hidden')) {
+      if (modalSection) {
+        const b = SECTIONS.find((x) => x.id === modalSection);
+        ui.modalTitle.textContent = `${b.name} — ${b.label}`;
+        ui.modalBody.innerHTML = RENDER[b.id](false);
+      } else if (modalKind === 'help') {
+        ui.modalTitle.textContent = t('helpTitle'); ui.modalBody.innerHTML = t('help');
+      } else if (modalKind === 'chat') {
+        const typed = $('#chatInput')?.value || '';
+        const cb = modalOnClose; openChat(); modalOnClose = cb;
+        $('#chatInput').value = typed;
+      }
+    }
+    if (ui.title.classList.contains('hidden')) toast(t('langToast'), 1600);
+    else Sound.click();
   }
 
   // ---------------------------------------------------------------- movement
@@ -843,6 +1094,10 @@
     const t = tileOf(n);
     walkTo(t.x, t.y + 1, { type: 'npc', n, tries: 3 });
   }
+  function goToRobot() {
+    if (Math.hypot(player.x - robot.x, player.y - robot.y) < 46) return openChat();
+    walkTo(robot.tx, robot.ty + 1, { type: 'robot' });
+  }
   function goToFountain() {
     if (Math.hypot(player.x - FOUNTAIN.x, player.y - FOUNTAIN.y) < 78) return makeWish();
     walkTo(22, 17, { type: 'fountain' });
@@ -853,6 +1108,7 @@
     if (!t) return;
     if (t.type === 'building') openSection(t.b);
     else if (t.type === 'fountain') { player.dir = 'up'; makeWish(); }
+    else if (t.type === 'robot') { player.dir = 'up'; openChat(); }
     else if (t.type === 'npc') {
       if (Math.hypot(player.x - t.n.x, player.y - t.n.y) < 56) startDialog(t.n);
       else if (t.tries > 0) { const nt = tileOf(t.n); walkTo(nt.x, nt.y + 1, { ...t, tries: t.tries - 1 }); }
@@ -871,6 +1127,8 @@
       const d = Math.hypot(player.x - n.x, player.y - n.y);
       if (d < 44 && d < bd) { bd = d; best = { type: 'npc', n }; }
     }
+    const rd = Math.hypot(player.x - robot.x, player.y - robot.y);
+    if (rd < 46 && rd < bd) { bd = rd; best = { type: 'robot' }; }
     const fd = Math.hypot(player.x - FOUNTAIN.x, player.y - FOUNTAIN.y);
     if (fd < 78 && fd < bd) best = { type: 'fountain' };
     return best;
@@ -880,16 +1138,19 @@
     if (it.type === 'building') openSection(it.b);
     else if (it.type === 'npc') startDialog(it.n);
     else if (it.type === 'fountain') makeWish();
+    else if (it.type === 'robot') openChat();
   }
   let lastPromptKey = '';
   function updatePrompt() {
     current = dlg.active ? null : findInteractable();
     let text = '', key = '';
     if (current) {
-      const verb = isTouch ? 'Ketuk 💬' : 'Tekan E';
-      if (current.type === 'building') { key = 'b' + current.b.id; text = `${verb} — masuk ${current.b.icon} ${current.b.name}`; }
-      else if (current.type === 'npc') { key = 'n' + current.n.i; text = `${verb} — ngobrol dengan ${current.n.name}`; }
-      else { key = 'f'; text = `${verb} — lempar koin ke air mancur 🪙`; }
+      const v = isTouch ? t('verbTouch') : t('verbKey');
+      if (current.type === 'building') { key = 'b' + current.b.id; text = t('pEnter', { v, place: `${current.b.icon} ${current.b.name}` }); }
+      else if (current.type === 'npc') { key = 'n' + current.n.i; text = t('pTalk', { v, name: current.n.name }); }
+      else if (current.type === 'robot') { key = 'r'; text = t('pAsk', { v, name: t('aiName') }); }
+      else { key = 'f'; text = t('pWish', { v }); }
+      key += state.lang;
     }
     if (key !== lastPromptKey) {
       lastPromptKey = key;
@@ -907,6 +1168,7 @@
     vw = window.innerWidth; vh = window.innerHeight;
     canvas.width = Math.round(vw * dpr); canvas.height = Math.round(vh * dpr);
     canvas.style.width = vw + 'px'; canvas.style.height = vh + 'px';
+    lightCv.width = canvas.width; lightCv.height = canvas.height;
     const across = vw >= 900 ? 22 : vw >= 600 ? 16 : 10.5;
     zoom = clamp(Math.min(vw / (across * TILE), vh / (9 * TILE)), 0.6, 3);
     snapCamera();
@@ -921,10 +1183,62 @@
   function snapCamera() { const t = camTarget(); cam.x = t.x; cam.y = t.y; }
   window.addEventListener('resize', resize);
 
+  // ---------------------------------------------------------------- siang & malam
+  const DAY_LEN = 300; // detik untuk satu hari penuh di desa
+  const NIGHT_MAX = 0.72; // kegelapan maksimum
+  let clock = 0.3; // 0 = tengah malam, 0.25 = jam 6 pagi, 0.5 = tengah hari
+  let dark = state.timeMode === 'night' ? NIGHT_MAX : 0;
+  let lastClock = '', isNight = dark > NIGHT_MAX * 0.5;
+  function targetDark() {
+    if (state.timeMode === 'day') return 0;
+    if (state.timeMode === 'night') return NIGHT_MAX;
+    const c = Math.cos(clock * Math.PI * 2); // 1 = tengah malam, -1 = tengah hari
+    return clamp((c - 0.25) / 0.6, 0, 1) * NIGHT_MAX;
+  }
+  function updateDayNight(dt) {
+    if (state.timeMode === 'auto') clock = (clock + dt / DAY_LEN) % 1;
+    else clock = state.timeMode === 'day' ? 0.5 : 0;
+    dark += (targetDark() - dark) * Math.min(1, dt * 1.5);
+    const nightNow = dark > NIGHT_MAX * 0.5;
+    if (nightNow !== isNight) {
+      isNight = nightNow;
+      if (state.timeMode === 'auto' && ui.title.classList.contains('hidden') && !anyOverlay()) toast(t(nightNow ? 'nightFalls' : 'dayBreaks'), 2600);
+    }
+    const mins = Math.floor((clock * 24 * 60) / 10) * 10;
+    const label = `${dark > NIGHT_MAX * 0.4 ? '🌙' : '☀️'} ${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
+    if (label !== lastClock) {
+      lastClock = label;
+      const el = document.getElementById('hudClock');
+      if (el) el.textContent = label;
+    }
+  }
+
+  // lampu jalan di sudut alun-alun dan sepanjang jalan setapak
+  const LAMPS = [[17, 11], [27, 11], [17, 19], [27, 19], [13, 23], [29, 23], [9, 9], [34, 9]]
+    .map(([x, y]) => ({ x: x * TILE + 26, y: y * TILE + 26 }));
+  const lampLit = () => clamp(dark / (NIGHT_MAX * 0.45), 0, 1);
+
+  // kunang-kunang di sekitar pepohonan (hanya terlihat saat malam)
+  const flies = Array.from({ length: Math.min(36, trees.length) }, (_, k) => {
+    const tr = trees[Math.floor(rng() * trees.length)];
+    return { x: tr.x * TILE + 16 + (rng() - 0.5) * 40, y: tr.y * TILE + (rng() - 0.5) * 40, a: rng() * 6, s: 0.6 + rng() * 0.8, k };
+  });
+  function updateFlies(dt) {
+    if (dark < 0.1) return;
+    for (const f of flies) {
+      f.a += dt * f.s;
+      f.x += Math.cos(f.a * 0.9 + f.k) * 14 * dt;
+      f.y += Math.sin(f.a * 1.3) * 10 * dt;
+    }
+  }
+
   // ---------------------------------------------------------------- update
   let time = 0;
   function update(dt) {
     time += dt;
+    updateDayNight(dt);
+    updateFlies(dt);
+    if (lights.flash) { lights.flash.t -= dt; if (lights.flash.t <= 0) lights.flash = null; }
     updateParticles(dt);
     updateDialog(dt);
     doorCooldown = Math.max(0, doorCooldown - dt);
@@ -981,16 +1295,17 @@
       ui.action.classList.add('hidden');
     }
 
-    const t = camTarget(), k = Math.min(1, dt * 7);
-    cam.x += (t.x - cam.x) * k; cam.y += (t.y - cam.y) * k;
+    const ct = camTarget(), k = Math.min(1, dt * 7);
+    cam.x += (ct.x - cam.x) * k; cam.y += (ct.y - cam.y) * k;
   }
 
   function collectGem(g) {
     state.gems.push(g.i); persist();
     const s = CV.skills[g.i];
     Sound.gem();
+    if (dark > 0.05) lights.flash = { x: g.x, y: g.y, t: 0.6 };
     burst(g.x, g.y - 10, catColor(s.category), 22);
-    toast(`💎 Skill ditemukan: <b>${esc(s.name)}</b> ${'★'.repeat(clamp(s.level || 0, 0, 5))}<small>${esc(s.category || '')} · ${state.gems.length}/${gems.length}</small>`);
+    toast(`${t('gemFound', { name: esc(s.name), stars: '★'.repeat(clamp(s.level || 0, 0, 5)) })}<small>${esc(s.category || '')} · ${state.gems.length}/${gems.length}</small>`);
     if (state.gems.length === 1) unlock('first_gem');
     if (allGemsDone()) unlock('all_gems');
     updateProgress();
@@ -1264,7 +1579,7 @@
     // cerobong
     ctx.fillStyle = '#8d6e63'; ctx.fillRect(x0 + w - 44, y0 - 18, 12, 20);
     // jendela
-    const lit = 0.75 + Math.sin(time * 2 + b.tx) * 0.1;
+    const lit = Math.min(1, 0.75 + Math.sin(time * 2 + b.tx) * 0.1 + dark * 0.4);
     for (const wx of [x0 + 18, x0 + w - 46]) {
       ctx.fillStyle = '#6d4c41'; ctx.fillRect(wx - 2, y0 + 58, 32, 28);
       ctx.fillStyle = `rgba(255,226,140,${lit})`; ctx.fillRect(wx, y0 + 60, 28, 24);
@@ -1387,6 +1702,163 @@
     }
   }
 
+  // ---------------------------------------------------------------- lampu, robot & cahaya malam
+  function drawLamp(L) {
+    const { x, y } = L, lit = lampLit();
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(x, y, 6, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#3b3f4f';
+    ctx.fillRect(x - 4, y - 4, 8, 4);
+    ctx.fillRect(x - 1.5, y - 36, 3, 33);
+    ctx.fillStyle = '#2b2e3a';
+    rrect(ctx, x - 6, y - 47, 12, 12, 3); ctx.fill();
+    ctx.fillStyle = `rgb(${Math.round(150 + 105 * lit)},${Math.round(160 + 60 * lit)},${Math.round(150 - 40 * lit)})`;
+    ctx.fillRect(x - 4, y - 45, 8, 8);
+    ctx.fillStyle = '#2b2e3a';
+    ctx.beginPath(); ctx.moveTo(x - 8, y - 47); ctx.lineTo(x + 8, y - 47); ctx.lineTo(x, y - 53); ctx.closePath(); ctx.fill();
+  }
+
+  function drawRobot() {
+    const { x, y } = robot;
+    const hov = Math.sin(time * 2.5) * 2.5;
+    const by = y - 12 + hov;
+    const chatting = modalKind === 'chat';
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(x, y, 10 - hov * 0.5, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+    // semburan pendorong
+    const jet = ctx.createRadialGradient(x, by + 3, 0, x, by + 3, 9);
+    jet.addColorStop(0, 'rgba(140,225,255,0.95)'); jet.addColorStop(1, 'rgba(140,225,255,0)');
+    ctx.fillStyle = jet; ctx.beginPath(); ctx.arc(x, by + 4, 9, 0, Math.PI * 2); ctx.fill();
+    // lengan (melambai)
+    const wave = Math.sin(time * 6) * 0.5;
+    ctx.fillStyle = '#b9c1cf';
+    ctx.save(); ctx.translate(x - 11, by - 12); ctx.rotate(0.3); rrect(ctx, -2, 0, 4, 10, 2); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.translate(x + 11, by - 12); ctx.rotate(-0.9 + wave); rrect(ctx, -2, -10, 4, 10, 2); ctx.fill(); ctx.restore();
+    // badan
+    ctx.fillStyle = '#dfe4ec'; rrect(ctx, x - 10, by - 17, 20, 16, 6); ctx.fill();
+    ctx.fillStyle = '#c4cad6'; ctx.fillRect(x - 10, by - 6, 20, 2);
+    ctx.fillStyle = '#d97757'; ctx.beginPath(); ctx.arc(x, by - 10, 3, 0, Math.PI * 2); ctx.fill();
+    // kepala & layar wajah
+    ctx.fillStyle = '#f1f4f8'; rrect(ctx, x - 13, by - 36, 26, 20, 7); ctx.fill();
+    ctx.fillStyle = '#1d2433'; rrect(ctx, x - 10, by - 33, 20, 13, 5); ctx.fill();
+    ctx.fillStyle = '#7fe3ff';
+    const blink = Math.sin(time * 1.7) > 0.97;
+    if (chatting) {
+      ctx.fillRect(x - 6, by - 28, 3, 2); ctx.fillRect(x + 3, by - 28, 3, 2);
+      ctx.beginPath(); ctx.arc(x, by - 26, 3, 0.15 * Math.PI, 0.85 * Math.PI); ctx.lineWidth = 1.4; ctx.strokeStyle = '#7fe3ff'; ctx.stroke();
+    } else {
+      ctx.fillRect(x - 6, by - 30 + (blink ? 2 : 0), 3, blink ? 1 : 5);
+      ctx.fillRect(x + 3, by - 30 + (blink ? 2 : 0), 3, blink ? 1 : 5);
+    }
+    // antena
+    ctx.strokeStyle = '#9aa3b2'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x, by - 36); ctx.lineTo(x, by - 43); ctx.stroke();
+    ctx.fillStyle = Math.sin(time * 4) > 0 ? '#d97757' : '#ffb38a';
+    ctx.beginPath(); ctx.arc(x, by - 44, 2.6, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function drawRobotBubble() {
+    const near = Math.hypot(player.x - robot.x, player.y - robot.y) < 110 || hover === robot;
+    const y = robot.y - 68 + Math.sin(time * 4) * 2;
+    if (!state.ach.includes('ai') && modalKind !== 'chat') {
+      ctx.fillStyle = '#fff'; rrect(ctx, robot.x - 11, y - 10, 22, 16, 5); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(robot.x - 3, y + 6); ctx.lineTo(robot.x, y + 10); ctx.lineTo(robot.x + 3, y + 6); ctx.fill();
+      ctx.fillStyle = '#d97757'; ctx.font = '900 10px Nunito, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('AI', robot.x, y - 1);
+    }
+    if (near) {
+      const name = t('aiName');
+      ctx.font = '800 10px Nunito, system-ui, sans-serif';
+      const tw = ctx.measureText(name).width + 10, ty = y - 20;
+      ctx.fillStyle = 'rgba(17,21,36,0.8)'; rrect(ctx, robot.x - tw / 2, ty - 7, tw, 14, 6); ctx.fill();
+      ctx.fillStyle = '#ffb38a'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(name, robot.x, ty);
+    }
+  }
+
+  // Lapisan gelap digambar di kanvas terpisah, lalu "dilubangi" di sekitar sumber cahaya.
+  const lightCv = document.createElement('canvas'), lctx = lightCv.getContext('2d');
+  const lights = { flash: null };
+  const WARM = '255,196,120', COOL = '130,215,255';
+  const hexRgb = (h) => { const n = parseInt(h.slice(1), 16); return `${n >> 16},${(n >> 8) & 255},${n & 255}`; };
+
+  function collectLights(visible) {
+    const L = [];
+    const lit = lampLit();
+    for (const p of LAMPS) if (visible(p.x / TILE, p.y / TILE, 4)) L.push({ x: p.x, y: p.y - 41, r: 110 * (0.5 + 0.5 * lit), a: lit, c: WARM, g: 0.45 });
+    for (const b of SECTIONS) {
+      if (!visible(b.tx + 2, b.ty + 2, 6)) continue;
+      const im = buildingSprite(b);
+      const bottom = (b.ty + BH) * TILE + 6;
+      const sw = im ? im.naturalWidth * BLD_SCALE : BW * TILE, sh = im ? im.naturalHeight * BLD_SCALE : BH * TILE + 10;
+      const left = (b.tx + BW / 2) * TILE - sw / 2;
+      const wy = bottom - sh * (im ? 0.3 : 0.42);
+      L.push({ x: left + sw * 0.25, y: wy, r: 52, a: 0.85, c: WARM, g: 0.35 });
+      L.push({ x: left + sw * 0.75, y: wy, r: 52, a: 0.85, c: WARM, g: 0.35 });
+      L.push({ x: b.doorX, y: bottom - 24, r: 44, a: 0.7, c: WARM, g: 0.25 });
+    }
+    L.push({ x: FOUNTAIN.x, y: FOUNTAIN.y, r: 85, a: 0.5, c: COOL, g: 0.22 });
+    L.push({ x: robot.x, y: robot.y - 30, r: 75, a: 0.9, c: COOL, g: 0.35 });
+    L.push({ x: player.x, y: player.y - 16, r: 80, a: 0.6, c: WARM, g: 0.12 });
+    for (const n of npcs) L.push({ x: n.x, y: n.y - 16, r: 45, a: 0.35 });
+    for (const g of gems) {
+      if (gemCollected(g.i) || !visible(g.x / TILE, g.y / TILE)) continue;
+      L.push({ x: g.x, y: g.y - 12, r: 36, a: 0.8, c: hexRgb(catColor(CV.skills[g.i].category)), g: 0.5 });
+    }
+    if (lights.flash) L.push({ x: lights.flash.x, y: lights.flash.y - 12, r: 160 * lights.flash.t, a: 1, c: '255,255,220', g: 0.6 * lights.flash.t });
+    return L;
+  }
+
+  function renderLighting(s, cx, cy, visible) {
+    const k = dark / NIGHT_MAX;
+    // semburat jingga saat senja & fajar
+    const dusk = state.timeMode === 'auto' ? Math.sin(Math.PI * clamp(k, 0, 1)) : 0;
+    if (dusk > 0.02) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = `rgba(255,120,60,${0.13 * dusk})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    if (dark < 0.01) return;
+    const L = collectLights(visible);
+    lctx.globalCompositeOperation = 'source-over';
+    lctx.setTransform(1, 0, 0, 1, 0, 0);
+    lctx.clearRect(0, 0, lightCv.width, lightCv.height);
+    lctx.fillStyle = `rgba(10,16,50,${dark})`;
+    lctx.fillRect(0, 0, lightCv.width, lightCv.height);
+    lctx.globalCompositeOperation = 'destination-out';
+    lctx.setTransform(s, 0, 0, s, -cx * s, -cy * s);
+    for (const l of L) {
+      if (l.r < 1) continue;
+      const g = lctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, l.r);
+      g.addColorStop(0, `rgba(0,0,0,${l.a})`); g.addColorStop(1, 'rgba(0,0,0,0)');
+      lctx.fillStyle = g; lctx.beginPath(); lctx.arc(l.x, l.y, l.r, 0, Math.PI * 2); lctx.fill();
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(lightCv, 0, 0);
+    // pendar hangat/dingin di atas kegelapan
+    ctx.setTransform(s, 0, 0, s, -cx * s, -cy * s);
+    ctx.globalCompositeOperation = 'lighter';
+    for (const l of L) {
+      if (!l.c || l.r < 1) continue;
+      const r = l.r * 0.7;
+      const g = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, r);
+      g.addColorStop(0, `rgba(${l.c},${l.g * k})`); g.addColorStop(1, `rgba(${l.c},0)`);
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(l.x, l.y, r, 0, Math.PI * 2); ctx.fill();
+    }
+    // kunang-kunang
+    if (dark > 0.15) {
+      for (const f of flies) {
+        if (!visible(f.x / TILE, f.y / TILE)) continue;
+        const a = (0.5 + 0.5 * Math.sin(time * 3 + f.a * 5)) * k;
+        ctx.fillStyle = `rgba(220,255,120,${a})`;
+        ctx.beginPath(); ctx.arc(f.x, f.y, 1.8, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = `rgba(220,255,120,${a * 0.25})`;
+        ctx.beginPath(); ctx.arc(f.x, f.y, 6, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
   // ---------------------------------------------------------------- render
   function render() {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1436,13 +1908,12 @@
     for (const t of trees) if (visible(t.x, t.y)) ents.push({ y: t.y * TILE + 28, d: () => drawTree(t) });
     for (const b of SECTIONS) if (visible(b.tx + 2, b.ty + 2, 5)) ents.push({ y: (b.ty + BH) * TILE - 4, d: () => drawBuilding(b) });
     ents.push({ y: FOUNTAIN.y + 30, d: drawFountain });
+    for (const L of LAMPS) if (visible(L.x / TILE, L.y / TILE)) ents.push({ y: L.y, d: () => drawLamp(L) });
+    ents.push({ y: robot.y, d: drawRobot });
     for (const n of npcs) ents.push({ y: n.y, d: () => drawCharacter(n) });
     ents.push({ y: player.y + 0.1, d: () => drawCharacter(player) });
     ents.sort((a, b) => a.y - b.y);
     for (const e of ents) e.d();
-
-    for (const b of SECTIONS) if (visible(b.tx + 2, b.ty, 6)) drawSign(b);
-    for (const n of npcs) drawNpcBubble(n);
 
     for (const p of parts) {
       ctx.globalAlpha = 1 - p.t / p.life;
@@ -1450,6 +1921,12 @@
       ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
     }
     ctx.globalAlpha = 1;
+
+    renderLighting(s, cx, cy, visible);
+    ctx.setTransform(s, 0, 0, s, -cx * s, -cy * s);
+    for (const b of SECTIONS) if (visible(b.tx + 2, b.ty, 6)) drawSign(b);
+    for (const n of npcs) drawNpcBubble(n);
+    drawRobotBubble();
 
     // confetti (ruang layar)
     if (confs.length) {
@@ -1477,6 +1954,9 @@
     for (const g of gems) if (!gemCollected(g.i)) { mctx.fillStyle = catColor(CV.skills[g.i].category); mctx.fillRect(g.x / 8 - 1.5, g.y / 8 - 2.5, 3, 3); }
     mctx.fillStyle = '#fff';
     for (const n of npcs) mctx.fillRect(n.x / 8 - 1, n.y / 8 - 3, 2, 3);
+    mctx.fillStyle = Math.sin(time * 6) > 0 ? '#d97757' : '#7fe3ff';
+    mctx.fillRect(robot.x / 8 - 1.5, robot.y / 8 - 4, 3, 4);
+    if (dark > 0.05) { mctx.fillStyle = `rgba(10,16,50,${dark * 0.6})`; mctx.fillRect(0, 0, mm.width, mm.height); }
     mctx.strokeStyle = 'rgba(255,255,255,0.7)'; mctx.lineWidth = 1;
     mctx.strokeRect(cam.x / 8 + 0.5, cam.y / 8 + 0.5, vw / zoom / 8, vh / zoom / 8);
     if (Math.sin(time * 10) > -0.3) {
@@ -1494,9 +1974,11 @@
     mm.classList.remove('hidden');
     Sound.seq([523, 659, 784, 1047], 0.08, 'triangle', 0.05);
     if (!state.visited.length && !state.gems.length) {
-      setTimeout(() => toast(isTouch ? '👆 Ketuk peta untuk berjalan. Ketuk bangunan untuk masuk!' : '🚶 WASD / panah untuk berjalan, atau klik peta. Klik bangunan untuk masuk!', 4500), 500);
-      setTimeout(() => { const n = npcs[0]; if (n) toast(`💬 ${esc(n.name)} sepertinya ingin menyapamu.`, 3500); }, 5500);
-    } else toast('👋 Selamat datang kembali! Progresmu sudah dimuat.');
+      setTimeout(() => toast(isTouch ? t('hintTouch') : t('hintKey'), 4500), 500);
+      setTimeout(() => { const n = npcs[0]; if (n) toast(t('npcWants', { name: esc(n.name) }), 3500); }, 5500);
+      setTimeout(() => toast(t('robotHint'), 4000), 10000);
+    } else toast(t('welcomeBack'));
+    Music.start();
   }
 
   function initUI() {
@@ -1510,15 +1992,8 @@
       const badge = $('.title-badge');
       if (badge) badge.outerHTML = '<img class="title-logo" src="assets/logo.png" alt="CV Quest" />';
     });
-    $('#hudName').textContent = CV.name || '';
-    $('#hudRole').textContent = CV.role || '';
-    $('#titleName').textContent = CV.name || '';
-    $('#titleRole').textContent = CV.role || '';
-    $('#titleTag').textContent = CV.tagline || '';
     document.title = `${CV.name ? CV.name + ' — ' : ''}CV Quest`;
-    ui.sound.textContent = state.muted ? '🔇' : '🔊';
-    if (state.visited.length || state.gems.length) $('#btnStart').textContent = '▶ Lanjutkan Petualangan';
-    updateProgress();
+    applyI18n();
   }
 
   let lastT = performance.now();
@@ -1536,5 +2011,5 @@
   requestAnimationFrame(frame);
 
   // untuk debugging di console
-  window.cvQuest = { state, player, gems, npcs, SECTIONS };
+  window.cvQuest = { state, player, gems, npcs, robot, SECTIONS, chat, setLang, get dark() { return dark; } };
 })();
