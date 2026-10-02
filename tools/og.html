@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <title>OG image</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&display=swap" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: #10162a; }
+    .bg { position: absolute; inset: 0; background: url(../assets/title-bg.png) center / cover; filter: saturate(1.1); }
+    .shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10, 16, 34, 0.92) 0%, rgba(10, 16, 34, 0.75) 55%, rgba(10, 16, 34, 0.25) 100%); }
+    .wrap { position: absolute; inset: 0; display: flex; align-items: center; gap: 48px; padding: 0 80px; color: #f1f4ff; font-family: Nunito, system-ui, sans-serif; }
+    .avatar { width: 220px; height: 220px; border-radius: 40px; background: url(../assets/avatar.png) center / cover; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5); border: 6px solid #f2c14e; flex: none; }
+    .logo { height: 120px; margin-bottom: 8px; filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.35)); }
+    h1 { font-family: Nunito, system-ui, sans-serif; font-weight: 800; font-size: 72px; line-height: 1; margin: 6px 0 14px; text-shadow: 0 5px 0 rgba(0, 0, 0, 0.45); }
+    .role { font-size: 34px; font-weight: 800; color: #f2c14e; }
+    .tag { font-size: 24px; color: #c9d2ea; margin-top: 12px; max-width: 640px; }
+    .chips { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+    .chip { background: rgba(255, 255, 255, 0.12); border-radius: 999px; padding: 8px 18px; font-size: 20px; font-weight: 800; }
+  </style>
+</head>
+<body>
+  <div class="bg"></div><div class="shade"></div>
+  <div class="wrap">
+    <div class="avatar"></div>
+    <div>
+      <img class="logo" src="../assets/logo.png" alt="" />
+      <h1 id="name"></h1>
+      <div class="role" id="role"></div>
+      <div class="tag" id="tag"></div>
+      <div class="chips" id="chips"></div>
+    </div>
+  </div>
+  <script src="../js/data.js"></script>
+  <script>
+    const cv = window.CV;
+    document.getElementById('name').textContent = cv.name;
+    document.getElementById('role').textContent = cv.role;
+    document.getElementById('tag').textContent = '🎮 CV interaktif · 🤖 tanya Robot Claude · 🌐 ID / EN';
+    const topSkills = cv.skills.slice().sort((a, b) => b.level - a.level).slice(0, 5).map((s) => s.name);
+    document.getElementById('chips').innerHTML = topSkills.map((s) => `<span class="chip">${s}</span>`).join('');
+  </script>
+</body>
+</html>

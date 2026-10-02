@@ -111,6 +111,9 @@ export default async function handler(req, res) {
   const messages = cleanMessages(body?.messages);
   if (!messages) return res.status(400).json({ error: "bad_request" });
 
+  // dicatat tanpa identitas (tanpa IP) supaya pemilik CV tahu apa yang sering ditanyakan (Vercel → Logs)
+  console.log("[pertanyaan]", JSON.stringify(messages[messages.length - 1].content.slice(0, 200)));
+
   client ??= new Anthropic();
 
   try {

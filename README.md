@@ -11,8 +11,17 @@ CV interaktif dalam bentuk **game RPG di browser**. Pengunjung berjalan-jalan di
 - 🌗 **Siklus siang–malam**: satu hari di desa = 5 menit. Saat malam, lampu jalan, jendela, permata, dan kunang-kunang menyala
 - 🎵 **Musik latar 8-bit** (versi lebih lembut saat malam), bisa dimatikan
 - 🌐 **Dua bahasa**: Indonesia & English, termasuk isi CV-nya. Bahasa awal mengikuti bahasa browser pengunjung
+- 🎮 **Simulasi optimasi payroll** di Kantor Karier: pilih langkah optimasi dan bawa proses dari >12 menit ke <1 menit
+- 🔄 **Animasi pipeline data** Oracle → PostgreSQL → Payroll → Jurnal Oracle di Lab Proyek
+- 💻 **Terminal rahasia** (tombol `` ` ``): jalankan SQL mini seperti `SELECT * FROM skills WHERE level >= 4;`
+- 📋 **Papan tamu**: pengunjung bisa menempel pesan singkat (dengan filter tautan, spam judi, dan kata kasar)
+- 🌧️ **Cuaca**: hujan turun sesekali, lengkap dengan suara rintik
+- 🐱 **Kucing desa** bernama Kopi yang mengikutimu setelah diberi makan
+- ⬇️ **Unduh CV (PDF)** dalam bahasa Indonesia atau Inggris
+- 🔗 **Preview link** (gambar + deskripsi) saat dibagikan di WhatsApp, LinkedIn, dll.
+- 📊 **Vercel Web Analytics** untuk melihat jumlah pengunjung
 - ⛲ Air mancur untuk "melempar koin" (easter egg)
-- 📜 Panel misi + 🏆 7 pencapaian + layar akhir dengan confetti
+- 📜 Panel misi + 🏆 11 pencapaian + layar akhir dengan confetti
 - 🗺️ Minimap yang bisa diklik untuk berjalan cepat
 - 🖱️ Klik/ketuk untuk berjalan otomatis (pathfinding A*), atau pakai WASD/panah
 - 📱 Bisa dimainkan di HP (kontrol sentuh + tombol aksi)
@@ -42,6 +51,34 @@ Tanpa API key, game tetap berjalan normal. Robot Claude hanya akan memberi tahu 
 - Pasang **batas pengeluaran bulanan** di Anthropic Console (Settings → Limits).
 - Function ini sudah membatasi tiap pengunjung (8 pertanyaan/menit, 60/jam per server), panjang pertanyaan (500 karakter), dan riwayat (10 pesan terakhir).
 - Kalau ingin model lain, tambahkan environment variable `ANTHROPIC_MODEL` (misalnya `claude-sonnet-5-5`).
+
+## Papan tamu
+
+Pesan disimpan di Redis (Upstash, ada paket gratis). Supaya aktif:
+
+1. Di Vercel: **Project → Storage → Create Database → Upstash for Redis** (atau lewat Marketplace), lalu hubungkan ke project ini.
+2. Integrasi itu otomatis menambahkan `KV_REST_API_URL` dan `KV_REST_API_TOKEN`. Deploy ulang.
+
+Tanpa database, papan tamu tetap tampil dengan keterangan "belum aktif". Pesan bisa dihapus lewat Upstash Console (key `cvquest:guestbook`). Setiap pengunjung dibatasi 1 pesan per menit dan 5 per hari; IP tidak disimpan (hanya hash harian).
+
+## Analitik pengunjung
+
+Aktifkan di Vercel: **Project → Analytics → Enable**. Jumlah pengunjung langsung tercatat. Event kustom (bangunan dibuka, pertanyaan ke Robot Claude, unduh PDF, dll.) hanya tercatat di paket Vercel yang mendukung custom events.
+
+Pertanyaan yang diajukan ke Robot Claude dicatat tanpa identitas di **Vercel → Logs** (cari `[pertanyaan]`), sehingga kamu bisa melihat apa yang paling sering ditanyakan recruiter.
+
+## PDF & gambar preview
+
+`assets/cv-dinul-iman-id.pdf`, `assets/cv-dinul-iman-en.pdf`, dan `assets/og.png` dibuat otomatis dari `js/data.js`. Setelah mengubah CV, buat ulang dengan:
+
+```bash
+npm install --no-save playwright && npx playwright install chromium
+node tools/build-assets.mjs
+```
+
+Catatan: beberapa aplikasi (mis. Facebook/LinkedIn) butuh alamat gambar preview yang lengkap. Kalau preview tidak muncul, ganti `assets/og.png` di `index.html` menjadi alamat penuh, misalnya `https://namadomain.vercel.app/assets/og.png`.
+
+Tips: bagikan `…/?lang=en` untuk langsung membuka versi bahasa Inggris.
 
 ## Gambar (sprite)
 
@@ -79,5 +116,7 @@ Untuk mencoba asisten AI secara lokal, pakai Vercel CLI: `npm install`, lalu `AN
 | Efek suara | M | ⚙️ |
 | Musik | N | ⚙️ |
 | Siang / malam / otomatis | T | ⚙️ |
+| Cuaca | R | ⚙️ |
+| Terminal rahasia | `` ` `` | ⚙️ → Terminal |
 | Bantuan | H | ❔ |
 | Tutup | Esc | ✕ |
