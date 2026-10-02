@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>CV Quest</title>
+  <meta name="description" content="CV interaktif dalam bentuk game RPG — jelajahi desa untuk mengenal saya." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <canvas id="game" aria-label="Dunia game CV"></canvas>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div class="hud-left panel">
+      <div class="avatar" id="hudAvatar"></div>
+      <div>
+        <div class="hud-name" id="hudName"></div>
+        <div class="hud-role" id="hudRole"></div>
+      </div>
+    </div>
+    <div class="hud-right">
+      <button class="icon-btn panel" id="btnQuest" title="Misi & Pencapaian (Q)" aria-label="Misi">📜</button>
+      <button class="icon-btn panel" id="btnCV" title="CV Klasik (C)" aria-label="CV klasik">📄</button>
+      <button class="icon-btn panel" id="btnSound" title="Suara (M)" aria-label="Suara">🔊</button>
+      <button class="icon-btn panel" id="btnHelp" title="Bantuan (H)" aria-label="Bantuan">❔</button>
+    </div>
+    <div class="hud-progress panel" id="hudProgress"></div>
+  </div>
+
+  <canvas id="minimap" class="panel hidden" title="Klik untuk berjalan ke sana"></canvas>
+
+  <div id="prompt" class="panel hidden"></div>
+  <button id="actionBtn" class="hidden" aria-label="Interaksi">💬</button>
+
+  <div id="toasts" aria-live="polite"></div>
+
+  <!-- Dialog NPC -->
+  <div id="dialog" class="panel hidden" role="dialog" aria-live="polite">
+    <div class="dialog-name" id="dialogName"></div>
+    <div class="dialog-text" id="dialogText"></div>
+    <div class="dialog-hint">▼ ketuk / E</div>
+  </div>
+
+  <!-- Modal umum -->
+  <div id="modal" class="overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <span class="modal-icon" id="modalIcon"></span>
+        <h2 id="modalTitle"></h2>
+        <button class="close-btn" data-close aria-label="Tutup">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Panel misi -->
+  <div id="quest" class="overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card" style="--accent:#f2c14e">
+      <div class="modal-head">
+        <span class="modal-icon">📜</span>
+        <h2>Misi & Pencapaian</h2>
+        <button class="close-btn" data-close aria-label="Tutup">✕</button>
+      </div>
+      <div class="modal-body" id="questBody"></div>
+    </div>
+  </div>
+
+  <!-- CV klasik -->
+  <div id="classic" class="overlay hidden" role="dialog" aria-modal="true">
+    <div class="classic-card">
+      <div class="classic-bar">
+        <button class="btn" id="btnPrint">🖨️ Cetak / PDF</button>
+        <button class="btn ghost" data-close>✕ Kembali ke game</button>
+      </div>
+      <div id="classicBody"></div>
+    </div>
+  </div>
+
+  <!-- Layar judul -->
+  <div id="title" class="overlay">
+    <div class="title-card">
+      <div class="title-badge">CV QUEST</div>
+      <div class="avatar huge" id="titleAvatar"></div>
+      <h1 id="titleName"></h1>
+      <p class="title-role" id="titleRole"></p>
+      <p class="title-tag" id="titleTag"></p>
+      <div class="title-actions">
+        <button class="btn big" id="btnStart">▶ Mulai Petualangan</button>
+        <button class="btn ghost" id="btnStartClassic">📄 Lihat CV Biasa</button>
+      </div>
+      <div class="controls">
+        <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / panah — berjalan</div>
+        <div><kbd>E</kbd> / <kbd>Spasi</kbd> — interaksi</div>
+        <div>🖱️ / 👆 klik atau ketuk peta — jalan otomatis</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
