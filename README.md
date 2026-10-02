@@ -19,6 +19,14 @@ CV interaktif dalam bentuk **game RPG di browser**. Pengunjung berjalan-jalan di
 
 Semua isi game ada di **`js/data.js`**: nama, peran, tentang, pengalaman, pendidikan, skill, proyek, kontak, dan dialog warga. Ganti saja isinya. `js/game.js` tidak perlu diubah.
 
+## Gambar (sprite)
+
+Semua gambar ada di folder **`assets/`** (PNG transparan): tile tanah, pohon, air mancur, 6 bangunan (`building-<id>.png`), karakter (`player.png`, `npc-*.png`), permata per kategori skill (`gem-*.png`), `avatar.png`, `logo.png`, dan `title-bg.png`.
+
+- Sprite karakter berupa strip 4 frame berjajar: **bawah, kiri, kanan, atas**. Animasi jalan ditangani kode.
+- Sprite warga dipilih lewat field `sprite` di `js/data.js`.
+- Ganti gambar cukup dengan menimpa file bernama sama. Kalau sebuah file tidak ada, game otomatis memakai gambar bawaan (digambar kode).
+
 ## Menjalankan
 
 Buka `index.html` langsung di browser, atau jalankan server lokal:
