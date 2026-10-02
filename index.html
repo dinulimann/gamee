@@ -24,15 +24,21 @@
       </div>
     </div>
     <div class="hud-right">
-      <button class="icon-btn panel" id="btnQuest" title="Misi & Pencapaian (Q)" aria-label="Misi">📜</button>
-      <button class="icon-btn panel" id="btnCV" title="CV Klasik (C)" aria-label="CV klasik">📄</button>
-      <button class="icon-btn panel" id="btnSound" title="Suara (M)" aria-label="Suara">🔊</button>
-      <button class="icon-btn panel" id="btnHelp" title="Bantuan (H)" aria-label="Bantuan">❔</button>
+      <button class="icon-btn panel" id="btnQuest" data-i18n-title="tQuest">📜</button>
+      <button class="icon-btn panel" id="btnCV" data-i18n-title="tCV">📄</button>
+      <button class="icon-btn panel lang-btn" id="btnLang" data-i18n-title="tLang">ID</button>
+      <button class="icon-btn panel" id="btnSettings" data-i18n-title="tSettings">⚙️</button>
+      <button class="icon-btn panel" id="btnHelp" data-i18n-title="tHelp">❔</button>
+    </div>
+    <div id="settings" class="panel hidden" role="menu">
+      <button class="set-row" data-action="sound" data-i18n-title="tSound"><span data-i18n="sSound"></span><b id="setSoundVal"></b></button>
+      <button class="set-row" data-action="music" data-i18n-title="tMusic"><span data-i18n="sMusic"></span><b id="setMusicVal"></b></button>
+      <button class="set-row" data-action="time" data-i18n-title="tTime"><span data-i18n="sTime"></span><b id="setTimeVal"></b></button>
     </div>
     <div class="hud-progress panel" id="hudProgress"></div>
   </div>
 
-  <canvas id="minimap" class="panel hidden" title="Klik untuk berjalan ke sana"></canvas>
+  <canvas id="minimap" class="panel hidden" data-i18n-title="tMinimap"></canvas>
 
   <div id="prompt" class="panel hidden"></div>
   <button id="actionBtn" class="hidden" aria-label="Interaksi">💬</button>
@@ -43,7 +49,7 @@
   <div id="dialog" class="panel hidden" role="dialog" aria-live="polite">
     <div class="dialog-name" id="dialogName"></div>
     <div class="dialog-text" id="dialogText"></div>
-    <div class="dialog-hint">▼ ketuk / E</div>
+    <div class="dialog-hint" data-i18n="dialogHint">▼ ketuk / E</div>
   </div>
 
   <!-- Modal umum -->
@@ -52,7 +58,7 @@
       <div class="modal-head">
         <span class="modal-icon" id="modalIcon"></span>
         <h2 id="modalTitle"></h2>
-        <button class="close-btn" data-close aria-label="Tutup">✕</button>
+        <button class="close-btn" data-close data-i18n-title="close">✕</button>
       </div>
       <div class="modal-body" id="modalBody"></div>
     </div>
@@ -63,8 +69,8 @@
     <div class="modal-card" style="--accent:#f2c14e">
       <div class="modal-head">
         <span class="modal-icon">📜</span>
-        <h2>Misi & Pencapaian</h2>
-        <button class="close-btn" data-close aria-label="Tutup">✕</button>
+        <h2 data-i18n="questTitle">Misi & Pencapaian</h2>
+        <button class="close-btn" data-close data-i18n-title="close">✕</button>
       </div>
       <div class="modal-body" id="questBody"></div>
     </div>
@@ -74,8 +80,8 @@
   <div id="classic" class="overlay hidden" role="dialog" aria-modal="true">
     <div class="classic-card">
       <div class="classic-bar">
-        <button class="btn" id="btnPrint">🖨️ Cetak / PDF</button>
-        <button class="btn ghost" data-close>✕ Kembali ke game</button>
+        <button class="btn" id="btnPrint" data-i18n="print">🖨️ Cetak / PDF</button>
+        <button class="btn ghost" data-close data-i18n="back">✕ Kembali ke game</button>
       </div>
       <div id="classicBody"></div>
     </div>
@@ -84,6 +90,10 @@
   <!-- Layar judul -->
   <div id="title" class="overlay">
     <div class="title-card">
+      <div class="lang-switch" role="group" aria-label="Bahasa / Language">
+        <button type="button" data-lang="id">🇮🇩 Indonesia</button>
+        <button type="button" data-lang="en">🇬🇧 English</button>
+      </div>
       <div class="title-badge">CV QUEST</div>
       <div class="avatar huge" id="titleAvatar"></div>
       <h1 id="titleName"></h1>
@@ -91,17 +101,18 @@
       <p class="title-tag" id="titleTag"></p>
       <div class="title-actions">
         <button class="btn big" id="btnStart">▶ Mulai Petualangan</button>
-        <button class="btn ghost" id="btnStartClassic">📄 Lihat CV Biasa</button>
+        <button class="btn ghost" id="btnStartClassic" data-i18n="startClassic">📄 Lihat CV Biasa</button>
       </div>
       <div class="controls">
-        <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / panah — berjalan</div>
-        <div><kbd>E</kbd> / <kbd>Spasi</kbd> — interaksi</div>
-        <div>🖱️ / 👆 klik atau ketuk peta — jalan otomatis</div>
+        <div data-i18n-html="ctrlWalk"></div>
+        <div data-i18n-html="ctrlAct"></div>
+        <div data-i18n-html="ctrlClick"></div>
       </div>
     </div>
   </div>
 
   <script src="js/data.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>

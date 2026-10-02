@@ -1,14 +1,18 @@
 # 🗺️ CV Quest
 
-CV interaktif dalam bentuk **game RPG di browser**. Pengunjung berjalan-jalan di sebuah desa, masuk ke bangunan untuk membaca setiap bagian CV, mengumpulkan permata skill, mengobrol dengan warga, dan membuka pencapaian.
+CV interaktif dalam bentuk **game RPG di browser**. Pengunjung berjalan-jalan di sebuah desa, masuk ke bangunan untuk membaca setiap bagian CV, mengumpulkan permata skill, mengobrol dengan warga, bertanya ke asisten AI, dan membuka pencapaian.
 
 ## Fitur
 
 - 🏠 **6 bangunan = 6 bagian CV**: Tentang Saya, Pengalaman, Pendidikan, Keahlian, Proyek, Kontak
 - 💎 **Permata skill** tersebar di peta. Setiap skill di `data.js` otomatis menjadi satu permata
 - 💬 **Warga (NPC)** yang berkeliling, bisa diajak ngobrol, dan memberi petunjuk
+- 🤖 **Robot Claude**: asisten AI di alun-alun yang menjawab pertanyaan bebas tentang CV (memakai Claude API)
+- 🌗 **Siklus siang–malam**: satu hari di desa = 5 menit. Saat malam, lampu jalan, jendela, permata, dan kunang-kunang menyala
+- 🎵 **Musik latar 8-bit** (versi lebih lembut saat malam), bisa dimatikan
+- 🌐 **Dua bahasa**: Indonesia & English, termasuk isi CV-nya. Bahasa awal mengikuti bahasa browser pengunjung
 - ⛲ Air mancur untuk "melempar koin" (easter egg)
-- 📜 Panel misi + 🏆 6 pencapaian + layar akhir dengan confetti
+- 📜 Panel misi + 🏆 7 pencapaian + layar akhir dengan confetti
 - 🗺️ Minimap yang bisa diklik untuk berjalan cepat
 - 🖱️ Klik/ketuk untuk berjalan otomatis (pathfinding A*), atau pakai WASD/panah
 - 📱 Bisa dimainkan di HP (kontrol sentuh + tombol aksi)
@@ -19,6 +23,26 @@ CV interaktif dalam bentuk **game RPG di browser**. Pengunjung berjalan-jalan di
 
 Semua isi game ada di **`js/data.js`**: nama, peran, tentang, pengalaman, pendidikan, skill, proyek, kontak, dan dialog warga. Ganti saja isinya. `js/game.js` tidak perlu diubah.
 
+- **Versi Inggris** ada di bagian bawah file yang sama (`window.CV_EN`). Isinya hanya teks yang perlu diterjemahkan, dengan urutan item yang sama seperti versi Indonesia.
+- **Teks antarmuka** (tombol, petunjuk, pertanyaan contoh untuk Robot Claude) ada di `js/i18n.js`.
+- Asisten AI membaca `js/data.js` yang sama, jadi jawabannya otomatis ikut berubah saat CV diperbarui.
+
+## Asisten AI (Robot Claude)
+
+Robot Claude memanggil Claude lewat Vercel Function di `api/ask.js`. Supaya aktif:
+
+1. Buat API key di [console.anthropic.com](https://console.anthropic.com) (Settings → API Keys).
+2. Di Vercel: **Project → Settings → Environment Variables**, tambahkan `ANTHROPIC_API_KEY` dengan nilai API key tadi.
+3. Deploy ulang (Deployments → ⋯ → Redeploy).
+
+Tanpa API key, game tetap berjalan normal. Robot Claude hanya akan memberi tahu bahwa asisten AI belum aktif.
+
+**Biaya:** setiap pertanyaan dibayar ke Anthropic sesuai pemakaian token. Model default-nya `claude-opus-5-5` dengan effort `low`, dan isi CV di-cache supaya pertanyaan berikutnya lebih murah. Untuk berjaga-jaga:
+
+- Pasang **batas pengeluaran bulanan** di Anthropic Console (Settings → Limits).
+- Function ini sudah membatasi tiap pengunjung (8 pertanyaan/menit, 60/jam per server), panjang pertanyaan (500 karakter), dan riwayat (10 pesan terakhir).
+- Kalau ingin model lain, tambahkan environment variable `ANTHROPIC_MODEL` (misalnya `claude-sonnet-5-5`).
+
 ## Gambar (sprite)
 
 Semua gambar ada di folder **`assets/`** (PNG transparan): tile tanah, pohon, air mancur, 6 bangunan (`building-<id>.png`), karakter (`player.png`, `npc-*.png`), permata per kategori skill (`gem-*.png`), `avatar.png`, `logo.png`, dan `title-bg.png`.
@@ -26,6 +50,7 @@ Semua gambar ada di folder **`assets/`** (PNG transparan): tile tanah, pohon, ai
 - Sprite karakter berupa strip 4 frame berjajar: **bawah, kiri, kanan, atas**. Animasi jalan ditangani kode.
 - Sprite warga dipilih lewat field `sprite` di `js/data.js`.
 - Ganti gambar cukup dengan menimpa file bernama sama. Kalau sebuah file tidak ada, game otomatis memakai gambar bawaan (digambar kode).
+- Robot Claude dan lampu jalan digambar oleh kode.
 
 ## Menjalankan
 
@@ -35,10 +60,12 @@ Buka `index.html` langsung di browser, atau jalankan server lokal:
 npx http-server .   # lalu buka http://localhost:8080
 ```
 
-## Publikasi gratis (GitHub Pages)
+Untuk mencoba asisten AI secara lokal, pakai Vercel CLI: `npm install`, lalu `ANTHROPIC_API_KEY=... npx vercel dev`.
 
-Settings → Pages → Source: *Deploy from a branch* → pilih branch dan folder `/ (root)`.
-Game akan tersedia di `https://<username>.github.io/gamee/`.
+## Publikasi
+
+- **Vercel** (disarankan, mendukung asisten AI): import repo di [vercel.com/new](https://vercel.com/new), biarkan pengaturan default, lalu Deploy.
+- **GitHub Pages**: Settings → Pages → Source: *Deploy from a branch* → pilih branch dan folder `/ (root)`. Asisten AI tidak aktif di sini karena GitHub Pages tidak menjalankan kode server.
 
 ## Kontrol
 
@@ -48,5 +75,9 @@ Game akan tersedia di `https://<username>.github.io/gamee/`.
 | Interaksi | E / Spasi / Enter | Klik objek / tombol 💬 |
 | Misi | Q | 📜 |
 | CV klasik | C | 📄 |
-| Suara | M | 🔊 |
+| Ganti bahasa | L | ID / EN |
+| Efek suara | M | ⚙️ |
+| Musik | N | ⚙️ |
+| Siang / malam / otomatis | T | ⚙️ |
+| Bantuan | H | ❔ |
 | Tutup | Esc | ✕ |

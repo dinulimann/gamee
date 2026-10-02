@@ -11,6 +11,9 @@
  *  - `period` boleh dikosongkan ("") kalau tidak ingin ditampilkan.
  *  - Kosongkan ("") link kontak yang tidak ingin ditampilkan.
  *  - `sprite` warga = nama file gambar di assets/ (tanpa .png).
+ *  - `window.CV_EN` di bagian bawah berisi terjemahan Inggris. Isinya hanya
+ *    teks yang perlu diterjemahkan; sisanya otomatis diambil dari `CV`.
+ *    Urutan item di setiap daftar harus sama dengan versi Indonesia.
  */
 (function () {
   const NAME = "Dinul Iman";
@@ -201,6 +204,152 @@
           "Ada permata berkilau tersebar di desa ✨ Setiap permata adalah satu skill.",
           "Ada PostgreSQL, Oracle, NestJS, Go... kumpulkan semuanya di Bengkel Skill!",
           "Kalau buru-buru, tekan tombol 📄 di pojok kanan atas untuk CV versi biasa.",
+        ],
+      },
+    ],
+  };
+
+  // ===========================================================
+  //  VERSI INGGRIS (dipakai saat pengunjung memilih English)
+  // ===========================================================
+  window.CV_EN = {
+    role: "Backend & Full-stack Developer",
+    location: "Jakarta, Indonesia",
+    tagline: "Building fast, clean and reliable backend systems — from payroll to data pipelines.",
+
+    about: [
+      "Hi! I'm Dinul Iman, an Information Technology graduate from Universitas Sumatera Utara focused on " +
+        "backend and full-stack development. Day to day I work with PHP, TypeScript, Node.js and relational " +
+        "databases such as PostgreSQL and Oracle.",
+      "My most notable work is the Payroll Management System at PT PELNI, serving around 4,800–5,000 " +
+        "employees — from PPh 21 income tax, BPJS, pension and cooperative deductions to journal integration " +
+        "with Oracle. A favourite achievement: cutting the payroll run from more than 10 minutes to under " +
+        "1 minute by optimizing stored procedures.",
+      "I enjoy work that sits close to data: ETL/ELT, data warehousing and automation. Lately I've also " +
+        "been actively exploring AI coding agents such as Claude Code, Codex and MCP.",
+    ],
+
+    facts: [
+      "⚡ Payroll run: >10 minutes → <1 minute",
+      "👥 Payroll system for ±5,000 employees",
+      "🎓 B.Sc. Information Technology, USU · GPA 3.50",
+      "🧪 Former Database & Data Structures lab assistant",
+      "🤖 Excited about AI coding agents & automation",
+      "📍 Based in Jakarta",
+    ],
+
+    lookingFor: [
+      "Backend Developer / Engineer",
+      "Full-stack Developer",
+      "Software Engineer",
+      "Data Engineer",
+      "HRIS / Payroll Technology",
+    ],
+
+    interests: ["AI & Data", "ETL/ELT & Data Warehousing", "TypeScript", "AI Coding Agents", "Claude Code · Codex · MCP", "Automation"],
+
+    experience: [
+      {
+        title: "Software Developer — Payroll Management System",
+        points: [
+          "Developed a PHP/CodeIgniter payroll system for ±4,800–5,000 employees.",
+          "Built payroll calculation and processing: PPh 21 income tax, BPJS, pension, cooperative, receivables and salary proration.",
+          "Designed the data integration Oracle → PostgreSQL → payroll → Oracle journal.",
+          "Optimized payroll stored procedures, cutting a run that took >10 minutes to <1 minute.",
+          "Built payslips and payroll reports with JasperReports/JasperServer.",
+          "Managed application environments with Docker / Rancher Desktop.",
+        ],
+      },
+      {
+        title: "Backend Developer — Ticketing Application",
+        points: [
+          "Developed the backend of a ticketing application with NestJS and PostgreSQL.",
+          "Built the shipping insurance module.",
+        ],
+      },
+      {
+        title: "Data Structures & Algorithms Lab Assistant",
+        period: "Jan 2021 — Jun 2021",
+        points: [
+          "Supervised data structures and algorithms lab sessions.",
+          "Helped students understand algorithm implementation and complexity.",
+        ],
+      },
+      {
+        title: "Database Lab Assistant",
+        period: "Jun 2020 — Jan 2021",
+        points: [
+          "Supervised database design and SQL lab sessions.",
+          "Prepared lab materials and graded assignments.",
+        ],
+      },
+    ],
+
+    education: [
+      {
+        degree: "B.Sc. Information Technology",
+        detail: "GPA 3.50 · Lab assistant for Databases and for Data Structures & Algorithms.",
+      },
+    ],
+
+    // hanya `note` yang diterjemahkan; urutan sama dengan daftar skill di atas
+    skills: [
+      { note: "Foundation of PELNI's Payroll Management System." },
+      {}, {},
+      { note: "Backend of the PELNI ticketing application." },
+      {}, {}, {}, {}, {},
+      { note: "Payroll stored procedures & query optimization." },
+      { note: "Data and financial journal integration." },
+      {}, {},
+      { name: "ETL & Data Integration", note: "Oracle → PostgreSQL → payroll → Oracle journal." },
+      { note: "Payslips and payroll reports." },
+      {}, {}, {},
+      { note: "PPh 21 income tax, BPJS, pension, cooperative, receivables, proration." },
+    ],
+
+    projects: [
+      {
+        desc:
+          "Payroll system for ±4,800–5,000 employees: PPh 21 income tax, BPJS, pension, cooperative, receivables " +
+          "and proration; Oracle ↔ PostgreSQL integration; payslips & reports via JasperServer. " +
+          "Stored procedure optimization cut the run from >10 minutes to <1 minute.",
+      },
+      {
+        name: "Payroll ↔ Oracle Integration Pipeline",
+        desc: "Data flow Oracle → PostgreSQL → payroll processing → journal back into Oracle, keeping HR and finance data in sync.",
+      },
+      {
+        name: "Ticketing Application — PT PELNI",
+        desc: "Backend for a ticketing application, including a shipping insurance module.",
+      },
+      {
+        desc: "An interactive CV as a browser RPG — yes, the game you're playing right now!",
+      },
+    ],
+
+    npcs: [
+      {
+        name: "Village Chief",
+        lines: [
+          "Welcome to CV Village! 👋",
+          `Here you can get to know ${NAME}, a backend & full-stack developer from Jakarta.`,
+          "Each building holds one part of the CV. Come on in, the doors are always open!",
+        ],
+      },
+      {
+        name: "Ms. Treasurer",
+        lines: [
+          "Paying salaries in this village used to take sooo long, more than 10 minutes! ⏳",
+          `After ${NAME} optimized the stored procedures, it takes under 1 minute. Salaries for ±5,000 people, done! 💸`,
+          "Drop by the Career Office if you want the full story.",
+        ],
+      },
+      {
+        name: "Data Guy",
+        lines: [
+          "There are sparkling gems scattered around the village ✨ Each gem is one skill.",
+          "PostgreSQL, Oracle, NestJS, Go... collect them all for the Skill Workshop!",
+          "In a hurry? Press the 📄 button in the top-right corner for the plain CV.",
         ],
       },
     ],
