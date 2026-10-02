@@ -10,6 +10,7 @@
  *  - `level` skill: 1 (pemula) sampai 5 (ahli).
  *  - `period` boleh dikosongkan ("") kalau tidak ingin ditampilkan.
  *  - Kosongkan ("") link kontak yang tidak ingin ditampilkan.
+ *  - `sprite` warga = nama file gambar di assets/ (tanpa .png).
  */
 (function () {
   const NAME = "Dinul Iman";
@@ -168,6 +169,7 @@
     npcs: [
       {
         name: "Pak Kades",
+        sprite: "npc-kades",
         shirt: "#3d5a80",
         hair: "#d9d9d9",
         home: [16, 14],
@@ -179,6 +181,7 @@
       },
       {
         name: "Bu Bendahara",
+        sprite: "npc-bendahara",
         shirt: "#c44569",
         hair: "#3b2416",
         home: [29, 16],
@@ -190,6 +193,7 @@
       },
       {
         name: "Kang Data",
+        sprite: "npc-data",
         shirt: "#2a9d8f",
         hair: "#1b1b1b",
         home: [5, 15],

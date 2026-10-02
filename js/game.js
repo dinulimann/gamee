@@ -36,6 +36,34 @@
     return (w.length > 1 ? w[0][0] + w[1][0] : w[0].slice(0, 2)).toUpperCase();
   };
 
+  // ---------------------------------------------------------------- aset gambar
+  // Sprite di folder assets/. Kalau ada yang gagal dimuat, game memakai gambar bawaan (kode).
+  const IMG = {};
+  const sprite = (name) => {
+    const im = IMG[name];
+    return im && im.complete && im.naturalWidth ? im : null;
+  };
+  const onAssetsReady = [];
+  (function loadAssets() {
+    const names = [
+      'tile-grass', 'tile-path', 'tile-sand', 'tile-water', 'tile-plaza',
+      'tree-oak', 'tree-pine', 'flowers', 'fountain',
+      'building-about', 'building-experience', 'building-education',
+      'building-skills', 'building-projects', 'building-contact',
+      'player', 'npc-kades', 'npc-bendahara', 'npc-data',
+      'gem-backend', 'gem-frontend', 'gem-database', 'gem-data', 'gem-devops', 'gem-domain',
+      'avatar', 'logo',
+    ];
+    let pending = names.length;
+    const done = () => { if (--pending === 0) onAssetsReady.forEach((f) => f()); };
+    names.forEach((n) => {
+      const im = new Image();
+      im.onload = done; im.onerror = done;
+      im.src = `assets/${n}.png`;
+      IMG[n] = im;
+    });
+  })();
+
   // ---------------------------------------------------------------- state
   const saved = store.load();
   const state = {
@@ -70,6 +98,7 @@
 
   const CAT_COLORS = { Backend: '#f72585', Frontend: '#4cc9f0', Database: '#ffd166', Data: '#80ed99', DevOps: '#5b8def', Domain: '#ff9f43', Tools: '#ffd166', 'Soft Skill': '#80ed99' };
   const catColor = (c) => CAT_COLORS[c] || '#c77dff';
+  const CAT_GEMS = { Backend: 'backend', Frontend: 'frontend', Database: 'database', Tools: 'database', Data: 'data', 'Soft Skill': 'data', DevOps: 'devops', Domain: 'domain' };
 
   const grid = (v) => Array.from({ length: MH }, () => new Array(MW).fill(v));
   const tiles = grid(GRASS), solid = grid(false), deco = grid(0), bld = grid(null);
@@ -178,12 +207,13 @@
   const player = {
     x: SPAWN.x * TILE + 16, y: SPAWN.y * TILE + 22,
     dir: 'down', phase: 0, moving: false, path: null, target: null,
-    shirt: '#f2a541', pants: '#2d3a5c', skin: '#f1c27d', hair: '#3b2416',
+    shirt: '#f2a541', pants: '#2d3a5c', skin: '#f1c27d', hair: '#3b2416', sprite: 'player',
   };
+  const NPC_SPRITES = ['npc-kades', 'npc-bendahara', 'npc-data'];
   const npcs = CV.npcs.map((n, i) => {
     const h = nearestReachable(...(n.home || [SPAWN.x - 3, SPAWN.y]));
     return {
-      i, name: n.name || 'Warga', lines: n.lines || ['Halo!'],
+      i, name: n.name || 'Warga', lines: n.lines || ['Halo!'], sprite: n.sprite || NPC_SPRITES[i],
       shirt: n.shirt || '#6c757d', hair: n.hair || '#222', pants: '#3a3a4a', skin: ['#e0ac69', '#f1c27d', '#c68642'][i % 3],
       home: h, x: h.x * TILE + 16, y: h.y * TILE + 22, dir: 'down', phase: 0, moving: false,
       path: null, wait: 1 + Math.random() * 2, talking: false,
@@ -683,9 +713,9 @@
 
   function screenToWorld(cx, cy) { return { x: cx / zoom + cam.x, y: cy / zoom + cam.y }; }
   function hitBuilding(w) {
-    return SECTIONS.find((b) => w.x > b.tx * TILE - 4 && w.x < (b.tx + BW) * TILE + 4 && w.y > b.ty * TILE - 44 && w.y < (b.ty + BH) * TILE);
+    return SECTIONS.find((b) => w.x > b.tx * TILE - 4 && w.x < (b.tx + BW) * TILE + 4 && w.y > buildingTop(b) + 10 && w.y < (b.ty + BH) * TILE);
   }
-  const hitNpc = (w) => npcs.find((n) => Math.abs(w.x - n.x) < 14 && w.y > n.y - 36 && w.y < n.y + 6);
+  const hitNpc = (w) => npcs.find((n) => Math.abs(w.x - n.x) < 14 && w.y > n.y - (sprite(n.sprite) ? CHAR_H : 36) && w.y < n.y + 6);
   const hitFountain = (w) => Math.hypot(w.x - FOUNTAIN.x, w.y - FOUNTAIN.y) < 48;
 
   let hover = null;
@@ -971,15 +1001,27 @@
   const GS = 2; // resolusi pre-render
   const ground = document.createElement('canvas');
   ground.width = MW * TILE * GS; ground.height = MH * TILE * GS;
-  (function drawGround() {
+  function drawGround() {
     const g = ground.getContext('2d');
-    g.scale(GS, GS);
+    g.setTransform(GS, 0, 0, GS, 0, 0);
+    g.clearRect(0, 0, MW * TILE, MH * TILE);
     const r = mulberry32(77);
+    // pola tile 64px (pre-render 2x) -> 32 satuan dunia
+    const pat = {};
+    for (const [t, n] of [[GRASS, 'grass'], [PATH, 'path'], [SAND, 'sand'], [WATER, 'water'], [PLAZA, 'plaza']]) {
+      const im = sprite('tile-' + n);
+      if (!im) continue;
+      pat[t] = g.createPattern(im, 'repeat');
+      pat[t].setTransform(new DOMMatrix().scale(TILE / im.naturalWidth));
+    }
+    const flowers = sprite('flowers');
     const is = (x, y, t) => inb(x, y) && tiles[y][x] === t;
     const land = (x, y) => inb(x, y) && tiles[y][x] !== WATER;
     for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
       const px = x * TILE, py = y * TILE, t = tiles[y][x];
-      if (t === GRASS || t === PATH || t === PLAZA) {
+      if ((t === GRASS || t === PATH || t === PLAZA) && pat[GRASS]) {
+        g.fillStyle = pat[GRASS]; g.fillRect(px, py, TILE, TILE);
+      } else if (t === GRASS || t === PATH || t === PLAZA) {
         g.fillStyle = (x * 7 + y * 13) % 5 === 0 ? '#66ad47' : '#6cb34d';
         g.fillRect(px, py, TILE, TILE);
         g.strokeStyle = '#5a9a3d'; g.lineWidth = 1;
@@ -988,13 +1030,15 @@
           g.beginPath(); g.moveTo(bx, by); g.lineTo(bx + 1, by - 3); g.stroke();
         }
       }
-      if (t === SAND) {
+      if (t === SAND && pat[SAND]) {
+        g.fillStyle = pat[SAND]; g.fillRect(px, py, TILE, TILE);
+      } else if (t === SAND) {
         g.fillStyle = '#ecd9a0'; g.fillRect(px, py, TILE, TILE);
         g.fillStyle = '#d8c184';
         for (let k = 0; k < 5; k++) g.fillRect(px + r() * 30, py + r() * 30, 2, 2);
       }
       if (t === WATER) {
-        g.fillStyle = '#3b8fd1'; g.fillRect(px, py, TILE, TILE);
+        g.fillStyle = pat[WATER] || '#3b8fd1'; g.fillRect(px, py, TILE, TILE);
         g.fillStyle = 'rgba(255,255,255,0.08)';
         g.fillRect(px + r() * 20, py + r() * 28, 8, 2);
         g.fillStyle = '#9bd3f2';
@@ -1004,7 +1048,7 @@
         if (land(x + 1, y)) g.fillRect(px + TILE - 3, py, 3, TILE);
       }
       if (t === PATH) {
-        g.fillStyle = '#d9b884';
+        g.fillStyle = pat[PATH] || '#d9b884';
         const m = 3;
         const l = is(x - 1, y, PATH) || is(x - 1, y, PLAZA) ? 0 : m;
         const rr = is(x + 1, y, PATH) || is(x + 1, y, PLAZA) ? 0 : m;
@@ -1012,9 +1056,11 @@
         const d = is(x, y + 1, PATH) || is(x, y + 1, PLAZA) ? 0 : m;
         g.fillRect(px + l, py + u, TILE - l - rr, TILE - u - d);
         g.fillStyle = '#c49f68';
-        for (let k = 0; k < 3; k++) g.fillRect(px + 6 + r() * 20, py + 6 + r() * 20, 3, 2);
+        if (!pat[PATH]) for (let k = 0; k < 3; k++) g.fillRect(px + 6 + r() * 20, py + 6 + r() * 20, 3, 2);
       }
-      if (t === PLAZA) {
+      if (t === PLAZA && pat[PLAZA]) {
+        g.fillStyle = pat[PLAZA]; g.fillRect(px, py, TILE, TILE);
+      } else if (t === PLAZA) {
         g.fillStyle = '#d3cbbf'; g.fillRect(px, py, TILE, TILE);
         g.strokeStyle = '#bdb3a4'; g.lineWidth = 1;
         const off = y % 2 ? 8 : 0;
@@ -1026,7 +1072,10 @@
         g.stroke();
       }
       const dc = deco[y][x];
-      if (dc && dc < 9) {
+      if (dc && dc < 9 && flowers) {
+        const fs = 16 + dc * 2;
+        g.drawImage(flowers, px + 2 + r() * (TILE - fs - 4), py + 2 + r() * (TILE - fs - 4), fs, fs);
+      } else if (dc && dc < 9) {
         const cols = ['#ff6b9a', '#ffd166', '#ffffff'];
         for (let k = 0; k < 3; k++) {
           const fx = px + 6 + r() * 20, fy = py + 6 + r() * 20;
@@ -1034,13 +1083,15 @@
           g.fillStyle = cols[dc - 1]; g.beginPath(); g.arc(fx + 0.5, fy, 2.2, 0, Math.PI * 2); g.fill();
           g.fillStyle = '#ffde59'; g.fillRect(fx, fy - 0.5, 1, 1);
         }
-      } else if (dc === 9) {
+      } else if (dc === 9 && !pat[GRASS]) {
         g.strokeStyle = '#4f8f36'; g.lineWidth = 1.5;
         const fx = px + 10 + r() * 12, fy = py + 20 + r() * 6;
         g.beginPath(); g.moveTo(fx - 4, fy - 6); g.lineTo(fx, fy); g.lineTo(fx + 4, fy - 6); g.moveTo(fx, fy); g.lineTo(fx, fy - 8); g.stroke();
       }
     }
-  })();
+  }
+  drawGround();
+  onAssetsReady.push(drawGround);
 
   // minimap dasar
   const mmBase = document.createElement('canvas');
@@ -1069,7 +1120,28 @@
     return `rgb(${f(n >> 16)},${f((n >> 8) & 255)},${f(n & 255)})`;
   }
 
+  const CHAR_H = 44; // tinggi sprite karakter (satuan dunia)
+  const DIRS = ['down', 'left', 'right', 'up'];
+  function drawCharacterSprite(c, im) {
+    const fw = im.naturalWidth / 4, fh = im.naturalHeight;
+    const h = CHAR_H, w = (fw / fh) * h;
+    const f = Math.max(0, DIRS.indexOf(c.dir));
+    const step = c.moving ? Math.sin(c.phase) : 0;
+    const bob = c.moving ? Math.abs(step) * 2.2 : 0;
+    const breathe = c.moving ? 1 : 1 + Math.sin(time * 2.2 + (c.i || 0)) * 0.012;
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.beginPath(); ctx.ellipse(c.x, c.y, 10 - bob, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.save();
+    ctx.translate(c.x, c.y + 1 - bob);
+    ctx.rotate(step * 0.07);
+    ctx.scale(1, breathe);
+    ctx.drawImage(im, f * fw, 0, fw, fh, -w / 2, -h, w, h);
+    ctx.restore();
+  }
+
   function drawCharacter(c) {
+    const im = sprite(c.sprite);
+    if (im) return drawCharacterSprite(c, im);
     const x = c.x, y = c.y;
     const sw = c.moving ? Math.sin(c.phase) : 0;
     const bob = c.moving ? Math.abs(Math.sin(c.phase)) * 1.5 : Math.sin(time * 2 + (c.i || 0)) * 0.4;
@@ -1115,6 +1187,16 @@
   function drawTree(t) {
     const x = t.x * TILE + 16, y = t.y * TILE + 28, s = t.s;
     const sway = Math.sin(time * 1.2 + t.x * 0.7 + t.y) * 1.2;
+    const im = sprite(t.kind === 'pine' ? 'tree-pine' : 'tree-oak');
+    if (im) {
+      const w = (t.kind === 'pine' ? 50 : 64) * s, h = (w * im.naturalHeight) / im.naturalWidth;
+      ctx.save();
+      ctx.translate(x, y + h * 0.06);
+      ctx.transform(1, 0, sway * -0.012, 1, 0, 0); // daun bergoyang, pangkal tetap
+      ctx.drawImage(im, -w / 2, -h, w, h);
+      ctx.restore();
+      return;
+    }
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
     ctx.beginPath(); ctx.ellipse(x, y, 13 * s, 5 * s, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#7a4f2a';
@@ -1134,9 +1216,30 @@
     }
   }
 
+  const BLD_SCALE = 0.84; // piksel sprite -> satuan dunia
+  const buildingSprite = (b) => sprite('building-' + b.id);
+  function buildingTop(b) {
+    const im = buildingSprite(b);
+    return im ? (b.ty + BH) * TILE + 6 - im.naturalHeight * BLD_SCALE : b.ty * TILE - 18;
+  }
+
   function drawBuilding(b) {
     const x0 = b.tx * TILE, y0 = b.ty * TILE, w = BW * TILE, h = BH * TILE;
     const hl = hover === b || (current && current.type === 'building' && current.b === b);
+    const im = buildingSprite(b);
+    if (im) {
+      const sw = im.naturalWidth * BLD_SCALE, sh = im.naturalHeight * BLD_SCALE;
+      const sx = x0 + w / 2 - sw / 2, sy = y0 + h + 6 - sh;
+      ctx.drawImage(im, sx, sy, sw, sh);
+      if (hl) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.12 + Math.sin(time * 6) * 0.06;
+        ctx.drawImage(im, sx, sy, sw, sh);
+        ctx.restore();
+      }
+      return;
+    }
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
     ctx.fillRect(x0 + 8, y0 + h - 6, w - 4, 10);
     // dinding
@@ -1180,7 +1283,7 @@
   }
 
   function drawSign(b) {
-    const x = (b.tx + BW / 2) * TILE, y = b.ty * TILE - 30 + Math.sin(time * 2 + b.tx) * 2;
+    const x = (b.tx + BW / 2) * TILE, y = Math.min(b.ty * TILE - 30, buildingTop(b) - 4) + Math.sin(time * 2 + b.tx) * 2;
     const visited = state.visited.includes(b.id);
     const txt = `${b.icon} ${b.name}${visited ? ' ✓' : ''}`;
     ctx.font = '800 11px Nunito, system-ui, sans-serif';
@@ -1199,6 +1302,19 @@
 
   function drawFountain() {
     const { x, y } = FOUNTAIN;
+    const im = sprite('fountain');
+    if (im) {
+      const w = 128, h = (w * im.naturalHeight) / im.naturalWidth, top = y + 46 - h;
+      ctx.drawImage(im, x - w / 2, top, w, h);
+      // tetesan air dari pancuran
+      ctx.fillStyle = 'rgba(220,245,255,0.85)';
+      for (let k = 0; k < 12; k++) {
+        const p = (time * 0.8 + k / 12) % 1, a = (k / 12) * Math.PI * 2;
+        const px = x + Math.cos(a) * p * 22, py = top + 10 - Math.sin(p * Math.PI) * 10 + p * 34;
+        ctx.beginPath(); ctx.arc(px, py, 1.3, 0, Math.PI * 2); ctx.fill();
+      }
+      return;
+    }
     ctx.fillStyle = 'rgba(0,0,0,0.18)';
     ctx.beginPath(); ctx.ellipse(x, y + 8, 46, 32, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#9e9e9e';
@@ -1234,6 +1350,12 @@
     const glow = ctx.createRadialGradient(x, y, 0, x, y, 18);
     glow.addColorStop(0, c + 'aa'); glow.addColorStop(1, c + '00');
     ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.fill();
+    const im = sprite('gem-' + CAT_GEMS[s.category]);
+    if (im) {
+      const w = 24, h = (w * im.naturalHeight) / im.naturalWidth;
+      ctx.drawImage(im, x - w / 2, y - h / 2, w, h);
+      return;
+    }
     ctx.fillStyle = c;
     ctx.beginPath(); ctx.moveTo(x, y - 9); ctx.lineTo(x + 7, y - 2); ctx.lineTo(x, y + 9); ctx.lineTo(x - 7, y - 2); ctx.closePath(); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,0.65)';
@@ -1248,7 +1370,7 @@
   function drawNpcBubble(n) {
     const near = Math.hypot(player.x - n.x, player.y - n.y) < 90 || hover === n;
     const fresh = !state.talked.includes(n.i);
-    const y = n.y - 44 + Math.sin(time * 4 + n.i) * 2;
+    const y = n.y - (sprite(n.sprite) ? CHAR_H + 12 : 44) + Math.sin(time * 4 + n.i) * 2;
     if (fresh && !n.talking) {
       ctx.fillStyle = '#fff'; rrect(ctx, n.x - 8, y - 10, 16, 16, 5); ctx.fill();
       ctx.beginPath(); ctx.moveTo(n.x - 3, y + 6); ctx.lineTo(n.x, y + 10); ctx.lineTo(n.x + 3, y + 6); ctx.fill();
@@ -1380,6 +1502,14 @@
   function initUI() {
     const ini = esc(initials(CV.name));
     $('#hudAvatar').innerHTML = ini; $('#titleAvatar').innerHTML = ini;
+    const whenLoaded = (name, f) => (sprite(name) ? f() : IMG[name].addEventListener('load', f));
+    whenLoaded('avatar', () => {
+      for (const el of [$('#hudAvatar'), $('#titleAvatar')]) { el.textContent = ''; el.classList.add('has-img'); }
+    });
+    whenLoaded('logo', () => {
+      const badge = $('.title-badge');
+      if (badge) badge.outerHTML = '<img class="title-logo" src="assets/logo.png" alt="CV Quest" />';
+    });
     $('#hudName').textContent = CV.name || '';
     $('#hudRole').textContent = CV.role || '';
     $('#titleName').textContent = CV.name || '';
