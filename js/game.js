@@ -68,7 +68,7 @@
     b.doorX = b.ex * TILE + 16; b.doorY = b.ey * TILE + 12;
   });
 
-  const CAT_COLORS = { Frontend: '#4cc9f0', Backend: '#f72585', Tools: '#ffd166', 'Soft Skill': '#80ed99' };
+  const CAT_COLORS = { Backend: '#f72585', Frontend: '#4cc9f0', Database: '#ffd166', Data: '#80ed99', DevOps: '#5b8def', Domain: '#ff9f43', Tools: '#ffd166', 'Soft Skill': '#80ed99' };
   const catColor = (c) => CAT_COLORS[c] || '#c77dff';
 
   const grid = (v) => Array.from({ length: MH }, () => new Array(MW).fill(v));
@@ -307,7 +307,11 @@
   }
 
   // ---------------------------------------------------------------- content renderers
+  const joinDot = (...p) => p.filter(Boolean).map(esc).join(' · ');
   const linkOrText = (url, label) => (url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(label || url)}</a>` : '');
+
+  const chipBlock = (title, list) =>
+    (list || []).length ? `<h4>${title}</h4><div class="chips">${list.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>` : '';
 
   function renderAbout() {
     return `
@@ -320,7 +324,9 @@
         </div>
       </div>
       ${(CV.about || []).map((p) => `<p>${esc(p)}</p>`).join('')}
-      ${(CV.facts || []).length ? `<h4>FAKTA SERU</h4><ul class="facts">${CV.facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}`;
+      ${(CV.facts || []).length ? `<h4>SOROTAN</h4><ul class="facts">${CV.facts.map((f) => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
+      ${chipBlock('🎯 POSISI YANG DICARI', CV.lookingFor)}
+      ${chipBlock('💡 MINAT', CV.interests)}`;
   }
 
   function renderExperience(classic) {
@@ -334,7 +340,7 @@
     }
     return `<p class="muted">Ketuk setiap kartu untuk melihat detailnya.</p>` + items.map((e, i) => `
       <details class="card" ${i === 0 ? 'open' : ''}>
-        <summary><span>💼</span><span><div class="card-title">${esc(e.title)}</div><div class="card-sub">${esc(e.company)} · ${esc(e.period)}</div></span></summary>
+        <summary><span>💼</span><span><div class="card-title">${esc(e.title)}</div><div class="card-sub">${joinDot(e.company, e.period)}</div></span></summary>
         <div class="card-body"><ul>${(e.points || []).map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div>
       </details>`).join('');
   }
@@ -350,7 +356,7 @@
     }
     return items.map((e, i) => `
       <details class="card" ${i === 0 ? 'open' : ''}>
-        <summary><span>🎓</span><span><div class="card-title">${esc(e.school)}</div><div class="card-sub">${esc(e.degree)} · ${esc(e.period)}</div></span></summary>
+        <summary><span>🎓</span><span><div class="card-title">${esc(e.school)}</div><div class="card-sub">${joinDot(e.degree, e.period)}</div></span></summary>
         <div class="card-body">${esc(e.detail || '')}</div>
       </details>`).join('');
   }
@@ -437,10 +443,12 @@
         </div>
       </header>
       ${sec('Tentang Saya', (CV.about || []).map((p) => `<p>${esc(p)}</p>`).join(''))}
+      ${sec('Posisi yang Dicari', (CV.lookingFor || []).length ? `<div class="chips">${CV.lookingFor.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>` : '')}
       ${sec('Pengalaman', renderExperience(true))}
       ${sec('Pendidikan', renderEducation(true))}
       ${sec('Keahlian', CV.skills.length ? renderSkills(true) : '')}
-      ${sec('Proyek', renderProjects(true))}`;
+      ${sec('Proyek', renderProjects(true))}
+      ${sec('Minat', (CV.interests || []).map(esc).join(' · '))}`;
   }
 
   // ---------------------------------------------------------------- overlays
