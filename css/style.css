@@ -439,8 +439,16 @@ details.card[open] summary::after { transform: rotate(90deg); }
   .hud-progress { top: 60px; font-size: 0.75rem; }
   #minimap { width: 132px; height: 96px; }
   #toasts { top: 100px; }
-  #prompt { bottom: 120px; font-size: 0.85rem; }
-  #actionBtn { bottom: 112px; right: 16px; }
+  /* petunjuk di kiri, tombol aksi di kanan, keduanya di atas minimap */
+  #prompt {
+    left: 12px; right: 96px; bottom: 124px;
+    transform: none;
+    white-space: normal;
+    font-size: 0.85rem;
+    line-height: 1.35;
+    animation-name: pop;
+  }
+  #actionBtn { bottom: 124px; right: 16px; width: 64px; height: 64px; }
   #classicBody { padding: 18px; }
   .about-head { flex-direction: column; text-align: center; }
 }
