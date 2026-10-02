@@ -50,6 +50,20 @@
     return (w.length > 1 ? w[0][0] + w[1][0] : w[0].slice(0, 2)).toUpperCase();
   };
 
+  // layar loading hilang setelah semua gambar siap (atau paling lama 8 detik)
+  function hideLoader() {
+    const el = document.getElementById('loader');
+    if (!el || el.classList.contains('done')) return;
+    el.classList.add('done');
+    setTimeout(() => el.remove(), 450);
+  }
+  setTimeout(hideLoader, 8000);
+
+  // Vercel Web Analytics (event kustom hanya tercatat di paket Vercel yang mendukungnya)
+  function track(name, data) {
+    try { if (window.va) window.va('event', data ? { name, data } : { name }); } catch (e) { /* abaikan */ }
+  }
+
   // ---------------------------------------------------------------- aset gambar
   // Sprite di folder assets/. Kalau ada yang gagal dimuat, game memakai gambar bawaan (kode).
   const IMG = {};
@@ -66,10 +80,15 @@
       'building-skills', 'building-projects', 'building-contact',
       'player', 'npc-kades', 'npc-bendahara', 'npc-data',
       'gem-backend', 'gem-frontend', 'gem-database', 'gem-data', 'gem-devops', 'gem-domain',
-      'avatar', 'logo',
+      'avatar', 'logo', 'title-bg',
     ];
     let pending = names.length;
-    const done = () => { if (--pending === 0) onAssetsReady.forEach((f) => f()); };
+    const done = () => {
+      pending--;
+      const bar = document.getElementById('loaderBar');
+      if (bar) bar.style.width = `${Math.round(((names.length - pending) / names.length) * 100)}%`;
+      if (pending === 0) { onAssetsReady.forEach((f) => f()); hideLoader(); }
+    };
     names.forEach((n) => {
       const im = new Image();
       im.onload = done; im.onerror = done;
@@ -89,9 +108,16 @@
     muted: !!saved.muted,
     music: saved.music !== false,
     timeMode: saved.timeMode || 'auto', // auto | day | night
+    weather: saved.weather || 'auto', // auto | clear | rain
+    catFed: !!saved.catFed,
     lang: I18N[saved.lang] ? saved.lang : (/^id\b|^ms\b/i.test(navigator.language || '') ? 'id' : 'en'),
   };
   const persist = () => store.save(state);
+  // ?lang=en / ?lang=id di URL (berguna saat membagikan link ke recruiter)
+  try {
+    const qLang = new URLSearchParams(location.search).get('lang');
+    if (qLang && I18N[qLang]) state.lang = qLang;
+  } catch (e) { /* abaikan */ }
 
   // ---------------------------------------------------------------- bahasa
   const lookup = (d, key) => key.split('.').reduce((o, k) => (o == null ? o : o[k]), d);
@@ -164,6 +190,9 @@
   });
   // air mancur
   for (let y = 14; y <= 16; y++) for (let x = 21; x <= 23; x++) solid[y][x] = true;
+  // papan tamu di alun-alun
+  const BOARD = { tx: 19, ty: 12, x: 19 * TILE + 16, y: 12 * TILE + 28 };
+  solid[BOARD.ty][BOARD.tx] = true;
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (tiles[y][x] === WATER) solid[y][x] = true;
 
   // pohon & dekorasi
@@ -314,6 +343,14 @@
     nope() { this.seq([220, 165], 0.07, 'sawtooth', 0.03); },
     win() { this.seq([523, 659, 784, 1047, 784, 1047, 1319], 0.1, 'triangle', 0.06); },
     coin() { this.seq([988, 1319], 0.06, 'square', 0.04); this.tone(200, 0.3, 'sine', 0.04, 0.25); },
+    meow() {
+      if (state.muted || !this.ctx) return;
+      const c = this.ctx, t0 = c.currentTime, o = c.createOscillator(), g = c.createGain();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(620, t0); o.frequency.linearRampToValueAtTime(980, t0 + 0.12); o.frequency.linearRampToValueAtTime(560, t0 + 0.38);
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.06, t0 + 0.04); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.42);
+      o.connect(g).connect(c.destination); o.start(t0); o.stop(t0 + 0.45);
+    },
   };
 
   // ---------------------------------------------------------------- musik latar 8-bit
@@ -381,6 +418,7 @@
     quest: $('#quest'), questBody: $('#questBody'), classic: $('#classic'), classicBody: $('#classicBody'),
     title: $('#title'), dialog: $('#dialog'), dialogName: $('#dialogName'), dialogText: $('#dialogText'),
     progress: $('#hudProgress'), settings: $('#settings'),
+    terminal: $('#terminal'), termOut: $('#termOut'), termInput: $('#termInput'),
   };
   const isTouch = matchMedia('(pointer: coarse)').matches;
 
@@ -401,6 +439,10 @@
     { id: 'talker', icon: '💬' },
     { id: 'wish', icon: '⛲' },
     { id: 'ai', icon: '🤖' },
+    { id: 'optimizer', icon: '⚡' },
+    { id: 'hacker', icon: '💻' },
+    { id: 'cat', icon: '🐱' },
+    { id: 'guest', icon: '📌' },
     { id: 'all_sections', icon: '🗺️' },
     { id: 'all_gems', icon: '👑' },
   ];
@@ -428,6 +470,11 @@
   }
 
   // ---------------------------------------------------------------- content renderers
+  const avatarHtml = () => (sprite('avatar')
+    ? `<div class="avatar big has-img" role="img" aria-label="${esc(CV.name)}"></div>`
+    : `<div class="avatar big">${esc(initials(CV.name))}</div>`);
+  const pdfUrl = () => `assets/cv-${String(CV_BASE.name || 'cv').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${state.lang}.pdf`;
+  const pdfButton = (cls = 'btn') => `<a class="${cls}" href="${pdfUrl()}" download data-pdf>${t('downloadPdf')}</a>`;
   const joinDot = (...p) => p.filter(Boolean).map(esc).join(' · ');
   const linkOrText = (url, label) => (url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(label || url)}</a>` : '');
 
@@ -437,7 +484,7 @@
   function renderAbout() {
     return `
       <div class="about-head">
-        <div class="avatar big">${esc(initials(CV.name))}</div>
+        ${avatarHtml()}
         <div>
           <h3>${esc(CV.name)}</h3>
           <p class="muted">${esc(CV.role)}${CV.location ? ' · 📍 ' + esc(CV.location) : ''}</p>
@@ -459,7 +506,8 @@
           <ul>${(e.points || []).map((p) => `<li>${esc(p)}</li>`).join('')}</ul>
         </div>`).join('');
     }
-    return `<p class="muted">${t('expHint')}</p>` + items.map((e, i) => `
+    return `<button class="btn pg-open" type="button" data-action="payroll">${t('pgOpen')}</button>
+      <p class="muted">${t('expHint')}</p>` + items.map((e, i) => `
       <details class="card" ${i === 0 ? 'open' : ''}>
         <summary><span>💼</span><span><div class="card-title">${esc(e.title)}</div><div class="card-sub">${joinDot(e.company, e.period)}</div></span></summary>
         <div class="card-body"><ul>${(e.points || []).map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div>
@@ -519,13 +567,14 @@
           <div class="chips">${(p.tech || []).map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>
         </div>`).join('');
     }
-    return `<p class="muted">${t('projHint')}</p>` + items.map((p) => `
+    return etlHtml() + `<p class="muted">${t('projHint')}</p>` + items.map((p, i) => `
       <details class="card">
         <summary><span>🧪</span><span><div class="card-title">${esc(p.name)}</div><div class="card-sub">${(p.tech || []).map(esc).join(' · ')}</div></span></summary>
         <div class="card-body">
           <p style="margin-top:0">${esc(p.desc)}</p>
           <div class="chips">${(p.tech || []).map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>
           ${p.link ? `<a class="btn small" href="${esc(p.link)}" target="_blank" rel="noopener">${t('viewProject')}</a>` : ''}
+          ${/payroll/i.test(CV_BASE.projects?.[i]?.name || '') && i === 0 ? `<button class="btn small" type="button" data-action="payroll">${t('pgOpen')}</button>` : ''}
         </div>
       </details>`).join('');
   }
@@ -547,6 +596,7 @@
       <div class="contact-grid">
         ${links.map((l) => `<a class="btn" href="${esc(l.href)}" target="_blank" rel="noopener">${l.icon} ${esc(l.label)}</a>`).join('')}
         ${CV.contact?.email ? `<button class="btn ghost" data-action="copy">${t('copyEmail')}</button>` : ''}
+        ${pdfButton('btn ghost')}
       </div>`;
   }
 
@@ -556,7 +606,7 @@
     const sec = (title, html) => (html ? `<section><h2>${title}</h2>${html}</section>` : '');
     return `
       <header class="cv-head">
-        <div class="avatar big">${esc(initials(CV.name))}</div>
+        ${avatarHtml()}
         <div>
           <h1>${esc(CV.name)}</h1>
           <div><strong>${esc(CV.role)}</strong>${CV.location ? ' · ' + esc(CV.location) : ''}</div>
@@ -612,6 +662,7 @@
     });
     if (first) unlock('first_door');
     updateProgress();
+    track('section_open', { id: b.id });
   }
 
   function openQuest() {
@@ -653,7 +704,8 @@
 
   function anyOverlay() {
     return !ui.modal.classList.contains('hidden') || !ui.quest.classList.contains('hidden') ||
-      !ui.classic.classList.contains('hidden') || !ui.title.classList.contains('hidden');
+      !ui.classic.classList.contains('hidden') || !ui.title.classList.contains('hidden') ||
+      !ui.terminal.classList.contains('hidden');
   }
 
   // ---------------------------------------------------------------- dialog
@@ -663,7 +715,8 @@
     const lines = [...((CV.npcs[npc.i] || {}).lines || ['👋'])];
     const todo = SECTIONS.find((s) => !state.visited.includes(s.id));
     const gLeft = gems.filter((g) => !gemCollected(g.i)).length;
-    if (dark > NIGHT_MAX * 0.5) lines.push(t('npcNight'));
+    if (weather.rain > 0.3) lines.push(t('npcRain'));
+    else if (dark > NIGHT_MAX * 0.5) lines.push(t('npcNight'));
     if (todo) lines.push(t('npcTodo', { place: `${todo.icon} ${todo.name}` }));
     else if (gLeft) lines.push(t('npcGems', { n: gLeft }));
     else lines.push(t('npcDone'));
@@ -764,6 +817,7 @@
     Sound.click();
     renderChat();
     unlock('ai');
+    track('ai_question');
     // riwayat yang dikirim: tanpa pesan lokal/gagal, maksimal 10 pesan terakhir, diawali pesan pengguna
     let history = chat.msgs.filter((m) => !m.local && !m.failed).map(({ role, content }) => ({ role, content })).slice(-10);
     while (history.length && history[0].role !== 'user') history.shift();
@@ -786,10 +840,495 @@
     renderChat();
   }
 
+  // ---------------------------------------------------------------- mini-game: optimasi payroll
+  const PG_BASE = 12.5; // menit sebelum optimasi
+  const PG_EFFECT = [-6, -3, -2.5, -0.7, -0.3, 2]; // efek tiap pilihan (lihat pgOpts di i18n.js)
+  const pg = { sel: new Set(), running: false, result: null, raf: 0 };
+  const numLocale = () => (state.lang === 'id' ? 'id-ID' : 'en-US');
+  const pgMinutes = () => Math.max(0.25, PG_BASE + [...pg.sel].reduce((a, i) => a + PG_EFFECT[i], 0));
+  function fmtDur(min) {
+    const total = Math.round(min * 60), m = Math.floor(total / 60), sec = total % 60;
+    return m ? t('pgMin', { m, s: sec }) : t('pgSec', { s: sec });
+  }
+  function openPayrollGame() {
+    pg.sel.clear(); pg.result = null; pg.running = false;
+    openModal({
+      title: t('pgTitle'), icon: '🎮', color: '#5b8def', kind: 'payroll', html: '',
+      onClose: () => { pg.running = false; cancelAnimationFrame(pg.raf); },
+    });
+    renderPayroll();
+  }
+  function renderPayroll() {
+    if (modalKind !== 'payroll') return;
+    const est = pgMinutes(), pct = clamp((est / PG_BASE) * 100, 2, 100);
+    const scroll = ui.modalBody.scrollTop;
+    ui.modalBody.innerHTML = `
+      <p>${t('pgIntro')}</p>
+      <div class="pg-opts">${t('pgOpts').map(([title, hint], i) => `
+        <button type="button" class="pg-opt ${pg.sel.has(i) ? 'on' : ''}" data-action="pg-toggle" data-i="${i}" ${pg.running || pg.result ? 'disabled' : ''}>
+          <span class="pg-check">${pg.sel.has(i) ? '✅' : '⬜'}</span>
+          <span><b>${esc(title)}</b><small>${esc(hint)}</small></span>
+        </button>`).join('')}</div>
+      <div class="pg-meter">
+        <div class="pg-meter-top"><span>${t('pgEstimate')}</span><b>${fmtDur(est)}</b></div>
+        <div class="pg-bar"><i class="${est < 1 ? 'good' : ''}" style="width:${pct}%"></i></div>
+      </div>
+      <div class="pg-run" id="pgRun">${pg.result || `<button class="btn" type="button" data-action="pg-run">${t('pgRun')}</button>`}</div>
+      <p class="muted pg-note">${t('pgNote')}</p>`;
+    ui.modalBody.scrollTop = scroll;
+  }
+  function pgToggle(i) {
+    if (pg.running || pg.result) return;
+    if (pg.sel.has(i)) pg.sel.delete(i); else pg.sel.add(i);
+    Sound.tone(PG_EFFECT[i] < 0 ? 880 : 220, 0.06, 'triangle', 0.04);
+    renderPayroll();
+  }
+  function pgRun() {
+    if (pg.running) return;
+    pg.running = true;
+    renderPayroll();
+    const minutes = pgMinutes(), dur = clamp(minutes * 350, 700, 5000), total = 5000;
+    $('#pgRun').innerHTML = `<div class="pg-bar big"><i id="pgProg" style="width:0%"></i></div><div class="muted" id="pgCount">${t('pgRunning')}</div>`;
+    const t0 = performance.now();
+    let lastTick = 0;
+    const step = (now) => {
+      if (!pg.running || modalKind !== 'payroll') return;
+      const k = Math.min(1, (now - t0) / dur);
+      $('#pgProg').style.width = `${k * 100}%`;
+      $('#pgCount').textContent = t('pgProcessed', { n: Math.round(k * total).toLocaleString(numLocale()), t: total.toLocaleString(numLocale()) });
+      if (now - lastTick > 120) { lastTick = now; Sound.tone(500 + k * 500, 0.03, 'square', 0.015); }
+      if (k < 1) { pg.raf = requestAnimationFrame(step); return; }
+      pg.running = false;
+      const win = minutes < 1;
+      pg.result = `<div class="pg-result ${win ? 'win' : ''}">${t(win ? 'pgWin' : 'pgSlow', { time: fmtDur(minutes), name: esc(CV.name) })}</div>
+        <button class="btn ghost small" type="button" data-action="pg-again">${t('pgAgain')}</button>`;
+      renderPayroll();
+      if (win) { Sound.win(); confetti(70); unlock('optimizer'); track('payroll_win'); }
+      else Sound.nope();
+    };
+    pg.raf = requestAnimationFrame(step);
+  }
+
+  // ---------------------------------------------------------------- animasi pipeline ETL (Lab Proyek)
+  let etlSel = 0, etlRows = 0, etlShown = -1;
+  const ETL_ICONS = ['🗄️', '🐘', '🧮', '📒'];
+  function etlHtml() {
+    const nodes = t('etlNodes');
+    return `
+      <div class="etl">
+        <h4>${t('etlTitle')}</h4>
+        <div class="etl-flow">${nodes.map(([n], i) => `${i ? '<div class="etl-pipe" aria-hidden="true"><i></i><i></i><i></i></div>' : ''}
+          <button type="button" class="etl-node ${i === etlSel ? 'on' : ''}" data-action="etl" data-i="${i}"><span class="etl-ic">${ETL_ICONS[i]}</span><span>${esc(n)}</span></button>`).join('')}
+        </div>
+        <div class="etl-desc" id="etlDesc"><b>${esc(nodes[etlSel][0])}</b> — ${esc(nodes[etlSel][1])}</div>
+        <div class="etl-foot"><span class="muted">${t('etlHint')}</span><span><b id="etlCount">${Math.floor(etlRows).toLocaleString(numLocale())}</b> ${t('etlRows')}</span></div>
+      </div>`;
+  }
+  function etlSelect(i) {
+    etlSel = i;
+    const nodes = t('etlNodes');
+    document.querySelectorAll('.etl-node').forEach((el, k) => el.classList.toggle('on', k === i));
+    const d = $('#etlDesc');
+    if (d) d.innerHTML = `<b>${esc(nodes[i][0])}</b> — ${esc(nodes[i][1])}`;
+    Sound.click();
+  }
+  function updateEtl(dt) {
+    if (modalSection !== 'projects') return;
+    etlRows += dt * (380 + Math.sin(time * 2) * 120);
+    const n = Math.floor(etlRows / 7) * 7;
+    if (n !== etlShown) {
+      etlShown = n;
+      const el = document.getElementById('etlCount');
+      if (el) el.textContent = n.toLocaleString(numLocale());
+    }
+  }
+
+  // ---------------------------------------------------------------- terminal rahasia (SQL mini)
+  const term = { hist: [], hi: 0, ready: false, sqlDone: false };
+  function openTerminal() {
+    if (!ui.title.classList.contains('hidden')) return;
+    if (dlg.active) endDialog();
+    ui.terminal.classList.remove('hidden');
+    if (!term.ready) { term.ready = true; termPrint(TERM_LOGO, 'logo'); termPrint(t('termWelcome'), 'dim'); }
+    setTimeout(() => ui.termInput.focus(), 30);
+    Sound.click();
+  }
+  function closeTerminal() { ui.terminal.classList.add('hidden'); ui.termInput.blur(); }
+  const TERM_LOGO = String.raw`  ___ __   __   ___                 _
+ / __|\ \ / /  / _ \ _  _  ___  ___| |_
+| (__  \ V /  | (_) | || |/ -_)(_-<|  _|
+ \___|  \_/    \__\_\\_,_|\___|/__/ \__|`;
+  function termPrint(text, cls = '') {
+    const el = document.createElement('pre');
+    el.className = 'tl ' + cls;
+    el.textContent = text;
+    ui.termOut.appendChild(el);
+    while (ui.termOut.children.length > 300) ui.termOut.firstChild.remove();
+    ui.termOut.scrollTop = ui.termOut.scrollHeight;
+  }
+  function termTables() {
+    return {
+      skills: CV.skills.map((x) => ({ name: x.name, level: x.level || 0, category: x.category || '' })),
+      experience: (CV.experience || []).map((x) => ({ title: x.title, company: x.company, period: x.period || '-' })),
+      projects: (CV.projects || []).map((x) => ({ name: x.name, tech: (x.tech || []).join(', ') })),
+      education: (CV.education || []).map((x) => ({ school: x.school, degree: x.degree, period: x.period || '-' })),
+    };
+  }
+  function asciiTable(rows, cols) {
+    const w = cols.map((c) => Math.max(c.length, ...rows.map((r) => String(r[c]).length)));
+    const line = '+' + w.map((n) => '-'.repeat(n + 2)).join('+') + '+';
+    const fmt = (vals) => '| ' + vals.map((v, i) => String(v).padEnd(w[i])).join(' | ') + ' |';
+    return [line, fmt(cols), line, ...rows.map((r) => fmt(cols.map((c) => r[c]))), line].join('\n');
+  }
+  function runSql(q) {
+    const m = q.match(/^select\s+(.+?)\s+from\s+(\w+)(?:\s+where\s+(.+?))?(?:\s+order\s+by\s+(\w+)(?:\s+(asc|desc))?)?(?:\s+limit\s+(\d+))?\s*;?\s*$/i);
+    if (!m) throw new Error('syntax: SELECT cols FROM table [WHERE ...] [ORDER BY col [DESC]] [LIMIT n]');
+    const [, colsRaw, table, where, orderBy, dir, limit] = m;
+    const tables = termTables();
+    const data = tables[table.toLowerCase()];
+    if (!data) throw new Error(`relation "${table}" does not exist`);
+    const allCols = Object.keys(data[0] || {});
+    const checkCol = (c) => { if (!allCols.includes(c)) throw new Error(`column "${c}" does not exist`); return c; };
+    let rows = data.slice();
+    if (where) {
+      const conds = where.split(/\s+and\s+/i).map((c) => {
+        const cm = c.trim().match(/^(\w+)\s*(=|!=|<>|>=|<=|>|<|like)\s*(.+)$/i);
+        if (!cm) throw new Error(`cannot parse condition "${c.trim()}"`);
+        let v = cm[3].trim();
+        const quoted = /^'.*'$|^".*"$/.test(v);
+        v = quoted ? v.slice(1, -1) : v;
+        return { col: checkCol(cm[1].toLowerCase()), op: cm[2].toLowerCase(), v, num: !quoted && v !== '' && !isNaN(v) };
+      });
+      rows = rows.filter((r) => conds.every(({ col, op, v, num }) => {
+        const a = r[col];
+        if (op === 'like') return new RegExp('^' + v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*').replace(/_/g, '.') + '$', 'i').test(String(a));
+        const x = num ? Number(a) : String(a).toLowerCase(), y = num ? Number(v) : v.toLowerCase();
+        return { '=': x === y, '!=': x !== y, '<>': x !== y, '>': x > y, '<': x < y, '>=': x >= y, '<=': x <= y }[op];
+      }));
+    }
+    if (orderBy) {
+      const c = checkCol(orderBy.toLowerCase()), sgn = /desc/i.test(dir || '') ? -1 : 1;
+      rows.sort((a, b) => (a[c] > b[c] ? 1 : a[c] < b[c] ? -1 : 0) * sgn);
+    }
+    if (limit) rows = rows.slice(0, +limit);
+    if (/^count\(\*\)$/i.test(colsRaw.trim())) return asciiTable([{ count: rows.length }], ['count']);
+    const cols = colsRaw.trim() === '*' ? allCols : colsRaw.split(',').map((c) => checkCol(c.trim().toLowerCase()));
+    return asciiTable(rows, cols) + '\n' + t('termRows', { n: rows.length });
+  }
+  function runCommand(raw) {
+    const cmd = String(raw || '').trim();
+    termPrint('dinul@cv-quest:~$ ' + cmd, 'cmd');
+    if (!cmd) return;
+    term.hist.push(cmd); term.hi = term.hist.length;
+    const [c0, ...args] = cmd.split(/\s+/);
+    const c = c0.toLowerCase();
+    const contact = CV.contact || {};
+    try {
+      if (/^select\b/i.test(cmd)) {
+        termPrint(runSql(cmd));
+        if (!term.sqlDone) { term.sqlDone = true; unlock('hacker'); track('terminal_sql'); }
+      } else if (c === 'help') {
+        termPrint([t('termHelp'),
+          '  SELECT * FROM skills WHERE level >= 4 ORDER BY level DESC;',
+          '  SELECT name, tech FROM projects;',
+          '  SELECT COUNT(*) FROM skills WHERE category = \'Backend\';',
+          '  show tables · describe <table> · whoami · ls · cat <file>',
+          '  neofetch · lang id|en · hire · coffee · date · clear · exit'].join('\n'));
+      } else if (c === 'show' && /^tables;?$/i.test(args[0] || '')) {
+        termPrint(asciiTable(Object.keys(termTables()).map((n) => ({ table: n })), ['table']));
+      } else if (c === 'describe' || c === 'desc') {
+        const name = (args[0] || '').replace(/;$/, '').toLowerCase(), tb = termTables()[name];
+        if (!tb) throw new Error(`relation "${name}" does not exist`);
+        termPrint(asciiTable(Object.keys(tb[0] || {}).map((k) => ({ column: k, type: typeof tb[0][k] === 'number' ? 'int' : 'text' })), ['column', 'type']));
+      } else if (c === 'whoami') {
+        termPrint(`${CV.name} — ${CV.role}${CV.location ? ' · ' + CV.location : ''}`);
+      } else if (c === 'ls') {
+        termPrint('about.txt  contact.txt  skills.db  experience.db  projects.db  education.db');
+      } else if (c === 'cat') {
+        const f = (args[0] || '').toLowerCase();
+        if (f === 'about.txt') termPrint((CV.about || []).join('\n\n'));
+        else if (f === 'contact.txt') termPrint(Object.entries(contact).filter(([, v]) => v).map(([k, v]) => `${k.padEnd(9)} ${v}`).join('\n') || '-');
+        else if (/\.db$/.test(f)) termPrint(`(binary) — try: SELECT * FROM ${f.replace(/\.db$/, '')};`);
+        else throw new Error(`cat: ${args[0] || ''}: No such file`);
+      } else if (c === 'neofetch') {
+        const top = CV.skills.slice().sort((a, b) => (b.level || 0) - (a.level || 0)).slice(0, 4).map((x) => x.name).join(', ');
+        termPrint([`   .--.      ${CV.name}`, `  |o_o |     role:     ${CV.role}`, `  |:_/ |     location: ${CV.location || '-'}`,
+          ` //   \\ \\    skills:   ${CV.skills.length} (${top}…)`, `(|     | )   projects: ${(CV.projects || []).length}`,
+          `/'\\_   _/\`\\  uptime:   ${Math.floor(time / 60)}m ${Math.floor(time % 60)}s in CV Quest`, `\\___)=(___/`].join('\n'));
+      } else if (c === 'lang') {
+        const l = (args[0] || '').toLowerCase();
+        if (!I18N[l]) throw new Error('usage: lang id|en');
+        setLang(l); termPrint(t('langToast'));
+      } else if (c === 'hire' || (c === 'sudo' && /hire/i.test(args.join(' ')))) {
+        if (c === 'sudo') termPrint(t('termSudo'));
+        termPrint(t('termHire'));
+        setTimeout(() => { closeTerminal(); openSection(SECTIONS.find((x) => x.id === 'contact')); }, 700);
+      } else if (c === 'sudo') {
+        termPrint(t('termSudo'));
+      } else if (c === 'coffee') {
+        termPrint(t('termCoffee'));
+      } else if (c === 'date') {
+        termPrint(new Date().toLocaleString(numLocale()));
+      } else if (c === 'echo') {
+        termPrint(args.join(' '));
+      } else if (c === 'clear' || c === 'cls') {
+        ui.termOut.innerHTML = '';
+      } else if (c === 'exit' || c === 'quit') {
+        closeTerminal();
+      } else {
+        termPrint(t('termNotFound', { c: c0 }), 'err');
+      }
+    } catch (err) {
+      termPrint(t('termSqlError', { e: err.message }), 'err');
+    }
+  }
+  ui.termInput.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp' && term.hist.length) { term.hi = Math.max(0, term.hi - 1); ui.termInput.value = term.hist[term.hi]; e.preventDefault(); }
+    else if (e.key === 'ArrowDown') { term.hi = Math.min(term.hist.length, term.hi + 1); ui.termInput.value = term.hist[term.hi] || ''; e.preventDefault(); }
+  });
+  ui.terminal.addEventListener('pointerdown', (e) => { if (e.target === ui.terminal) closeTerminal(); else if (!e.target.closest('input')) setTimeout(() => ui.termInput.focus(), 0); });
+
+  // ---------------------------------------------------------------- cuaca (hujan)
+  const weather = { rain: state.weather === 'rain' ? 1 : 0, target: 0, timer: 70 + Math.random() * 60, drops: [], raining: false, noise: null, gain: null };
+  function updateWeather(dt) {
+    if (state.weather === 'clear') weather.target = 0;
+    else if (state.weather === 'rain') weather.target = 1;
+    else {
+      weather.timer -= dt;
+      if (weather.timer <= 0) {
+        if (weather.target > 0) { weather.target = 0; weather.timer = 90 + Math.random() * 120; }
+        else if (Math.random() < 0.5) { weather.target = 0.55 + Math.random() * 0.45; weather.timer = 35 + Math.random() * 35; }
+        else weather.timer = 60 + Math.random() * 60;
+      }
+    }
+    weather.rain += (weather.target - weather.rain) * Math.min(1, dt * 0.7);
+    const raining = weather.rain > 0.3;
+    if (raining !== weather.raining) {
+      weather.raining = raining;
+      if (state.weather === 'auto' && ui.title.classList.contains('hidden') && !anyOverlay()) toast(t(raining ? 'rainStarts' : 'rainStops'), 2200);
+    }
+    // tetesan hujan (ruang layar)
+    const want = Math.round(240 * weather.rain);
+    while (weather.drops.length < want) weather.drops.push({ x: Math.random() * (vw + 100), y: Math.random() * -vh, s: 560 + Math.random() * 300, l: 14 + Math.random() * 14 });
+    if (weather.drops.length > want) weather.drops.length = want;
+    for (const d of weather.drops) {
+      d.y += d.s * dt; d.x -= d.s * 0.18 * dt;
+      if (d.y > vh) { d.y = -20 - Math.random() * 60; d.x = Math.random() * (vw + 100); }
+    }
+    // percikan di tanah
+    if (!weather.splashes) weather.splashes = [];
+    for (let k = 0; k < weather.rain * 40 * dt * 10; k++) if (Math.random() < 0.1) weather.splashes.push({ x: Math.random() * vw, y: Math.random() * vh, t: 0 });
+    weather.splashes = weather.splashes.filter((p) => (p.t += dt) < 0.35);
+    updateRainSound();
+  }
+  function updateRainSound() {
+    const c = Sound.ctx;
+    if (!c) return;
+    const vol = state.muted || !ui.title.classList.contains('hidden') ? 0 : 0.05 * weather.rain;
+    if (!weather.noise && vol > 0.001) {
+      const buf = c.createBuffer(1, c.sampleRate * 2, c.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+      const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1400; f.Q.value = 0.6;
+      weather.gain = c.createGain(); weather.gain.gain.value = 0;
+      src.connect(f).connect(weather.gain).connect(c.destination); src.start();
+      weather.noise = src;
+    }
+    if (weather.gain && Math.abs(weather.gain.gain.value - vol) > 0.002) weather.gain.gain.setTargetAtTime(vol, c.currentTime, 0.3);
+  }
+  function drawRain() {
+    if (weather.rain < 0.02) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = `rgba(30,45,75,${0.3 * weather.rain})`;
+    ctx.fillRect(0, 0, vw, vh);
+    ctx.strokeStyle = `rgba(210,228,255,${0.4 + 0.25 * weather.rain})`;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    for (const d of weather.drops) { ctx.moveTo(d.x, d.y); ctx.lineTo(d.x + d.l * 0.18, d.y - d.l); }
+    ctx.stroke();
+    ctx.lineWidth = 1;
+    for (const p of weather.splashes || []) {
+      const k = p.t / 0.35;
+      ctx.strokeStyle = `rgba(210,228,255,${0.6 * (1 - k)})`;
+      ctx.beginPath(); ctx.ellipse(p.x, p.y, 2 + k * 6, 1 + k * 2.5, 0, 0, Math.PI * 2); ctx.stroke();
+    }
+  }
+
+  // ---------------------------------------------------------------- kucing desa
+  const catHome = nearestReachable(13, 13);
+  const cat = { x: catHome.x * TILE + 16, y: catHome.y * TILE + 22, dir: 'right', path: null, wait: 2, moving: false, phase: 0, repath: 0, i: 7 };
+  function updateCat(dt) {
+    if (state.catFed) {
+      const d = Math.hypot(player.x - cat.x, player.y - cat.y);
+      cat.repath -= dt;
+      if (d > 52 && cat.repath <= 0) {
+        cat.repath = 0.5;
+        const s0 = tileOf(cat), g = tileOf(player);
+        const p = findPath(s0.x, s0.y, g.x, g.y);
+        cat.path = p && p.length > 1 ? p.slice(0, -1) : null;
+      }
+      if (d < 34) cat.path = null;
+      if (cat.path) { if (followPath(cat, d > 140 ? 200 : 140, dt)) cat.moving = false; }
+      else { cat.moving = false; if (d < 60) cat.dir = player.x < cat.x ? 'left' : 'right'; }
+    } else if (cat.path) {
+      if (followPath(cat, 40, dt)) cat.moving = false;
+    } else {
+      cat.moving = false;
+      cat.wait -= dt;
+      if (cat.wait <= 0) {
+        cat.wait = 2 + Math.random() * 4;
+        const tx = catHome.x + Math.round((Math.random() - 0.5) * 6), ty = catHome.y + Math.round((Math.random() - 0.5) * 4);
+        if (inb(tx, ty) && reach[ty][tx]) { const s0 = tileOf(cat); cat.path = findPath(s0.x, s0.y, tx, ty); if (cat.path && !cat.path.length) cat.path = null; }
+      }
+    }
+    if (cat.moving) cat.phase += dt * 14;
+  }
+  function interactCat() {
+    Sound.meow();
+    hearts(cat.x, cat.y - 18);
+    if (!state.catFed) {
+      state.catFed = true; persist();
+      toast(t('catFed', { name: t('catName') }), 3200);
+      unlock('cat');
+      track('cat_fed');
+    } else {
+      const lines = t('catPet');
+      toast(lines[Math.floor(Math.random() * lines.length)].replace('{name}', t('catName')), 1800);
+    }
+  }
+  function drawCat() {
+    const { x, y } = cat, flip = cat.dir === 'left' ? -1 : 1;
+    const step = cat.moving ? Math.sin(cat.phase) : 0, bob = Math.abs(step) * 1.2;
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(x, y, 9, 2.6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.save(); ctx.translate(x, y - bob); ctx.scale(flip, 1);
+    const wag = Math.sin(time * (cat.moving ? 8 : 3));
+    ctx.strokeStyle = '#d9822f'; ctx.lineWidth = 2.6; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-7, -7); ctx.quadraticCurveTo(-14, -9 + wag * 3, -12 + wag, -17); ctx.stroke();
+    ctx.fillStyle = '#d9822f';
+    ctx.fillRect(-6, -4, 2.4, 4 + step * 1.5); ctx.fillRect(-2, -4, 2.4, 4 - step * 1.5);
+    ctx.fillRect(2, -4, 2.4, 4 - step * 1.5); ctx.fillRect(5, -4, 2.4, 4 + step * 1.5);
+    ctx.fillStyle = '#f2a65a';
+    ctx.beginPath(); ctx.ellipse(0, -7, 8.5, 4.8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#d07a2a'; ctx.lineWidth = 1.2;
+    for (const sx of [-4, -1, 2]) { ctx.beginPath(); ctx.moveTo(sx, -11); ctx.lineTo(sx + 1, -8); ctx.stroke(); }
+    ctx.fillStyle = '#f2a65a';
+    ctx.beginPath(); ctx.arc(8, -12, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(4.2, -15); ctx.lineTo(5, -20.5); ctx.lineTo(7.8, -16); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(8.5, -16.5); ctx.lineTo(11.5, -20); ctx.lineTo(12.2, -14.5); ctx.fill();
+    ctx.fillStyle = '#2a1d14';
+    const blink = Math.sin(time * 1.1 + 2) > 0.97;
+    ctx.fillRect(9.2, -13, 1.5, blink ? 0.5 : 2);
+    ctx.fillStyle = '#ff8fa3'; ctx.fillRect(12, -11.5, 1.4, 1.2);
+    ctx.restore();
+    if (!state.catFed) {
+      const by = y - 32 + Math.sin(time * 3) * 2;
+      ctx.fillStyle = '#fff'; rrect(ctx, x - 10, by - 9, 20, 15, 5); ctx.fill();
+      ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('🐟', x, by - 1);
+    }
+  }
+
+  // ---------------------------------------------------------------- papan tamu
+  const gb = { entries: null, status: 'idle', note: '', sending: false };
+  function openGuestbook() {
+    player.path = null; player.target = null;
+    gb.note = '';
+    openModal({ title: t('gbName'), icon: '📋', color: '#a0673c', kind: 'guestbook', html: '' });
+    renderGuestbookShell();
+    loadGuestbook();
+  }
+  function renderGuestbookShell() {
+    if (modalKind !== 'guestbook') return;
+    ui.modalBody.innerHTML = `
+      <p>${t('gbIntro', { name: esc(CV.name) })}</p>
+      <form class="gb-form" id="gbForm" autocomplete="off">
+        <input id="gbNameIn" maxlength="24" placeholder="${esc(t('gbNamePh'))}" aria-label="${esc(t('gbNamePh'))}" />
+        <textarea id="gbMsgIn" maxlength="140" rows="2" placeholder="${esc(t('gbMsgPh'))}" aria-label="${esc(t('gbMsgPh'))}"></textarea>
+        <div class="gb-row"><span class="muted" id="gbCount">0/140</span><button class="btn small" id="gbSend" type="submit">${esc(t('gbPost'))}</button></div>
+        <div class="gb-note" id="gbNote" aria-live="polite">${esc(gb.note)}</div>
+        <div class="muted gb-rules">${esc(t('gbRules'))}</div>
+      </form>
+      <div class="gb-list" id="gbList"></div>`;
+    $('#gbMsgIn').addEventListener('input', (e) => { $('#gbCount').textContent = `${e.target.value.length}/140`; });
+    renderGbList();
+  }
+  function renderGbList() {
+    const el = $('#gbList');
+    if (!el) return;
+    if (gb.status === 'loading' && !gb.entries) { el.innerHTML = `<p class="muted">${esc(t('gbLoading'))}</p>`; return; }
+    if (gb.status === 'offline') { el.innerHTML = `<p class="muted">${esc(t('gbOffline'))}</p>`; return; }
+    if (!gb.entries || !gb.entries.length) { el.innerHTML = `<p class="muted">${esc(t('gbEmpty'))}</p>`; return; }
+    el.innerHTML = gb.entries.map((e, i) => `
+      <div class="gb-note-card" style="--r:${((i * 37) % 7) - 3}deg">
+        <div class="gb-msg">${esc(e.m)}</div>
+        <div class="gb-meta">— ${esc(e.n || t('gbAnon'))} · ${esc(new Date(e.t).toLocaleDateString(numLocale(), { day: 'numeric', month: 'short', year: 'numeric' }))}</div>
+      </div>`).join('');
+  }
+  async function loadGuestbook() {
+    gb.status = 'loading'; renderGbList();
+    try {
+      const r = await fetch('api/guestbook');
+      const data = r.ok ? await r.json() : null;
+      if (data && Array.isArray(data.entries)) { gb.entries = data.entries; gb.status = 'ok'; }
+      else gb.status = 'offline';
+    } catch (e) { gb.status = 'offline'; }
+    renderGbList();
+  }
+  async function postGuestbook() {
+    const nameEl = $('#gbNameIn'), msgEl = $('#gbMsgIn'), note = $('#gbNote');
+    const m = msgEl.value.trim();
+    if (m.length < 2 || gb.sending) return;
+    gb.sending = true; $('#gbSend').disabled = true;
+    let key = 'gbError';
+    try {
+      const r = await fetch('api/guestbook', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: nameEl.value, message: m }) });
+      const data = await r.json().catch(() => ({}));
+      if (r.status === 201 && data.entry) {
+        key = 'gbThanks';
+        gb.entries = [data.entry, ...(gb.entries || [])]; gb.status = 'ok';
+        msgEl.value = ''; $('#gbCount').textContent = '0/140';
+        unlock('guest'); track('guestbook_post'); Sound.coin();
+        renderGbList();
+      } else if (r.status === 400 && data.error === 'rejected') key = 'gbRejected';
+      else if (r.status === 429) key = 'gbRate';
+      else if (r.status === 503 || r.status === 404 || r.status === 405) key = 'gbOffline';
+    } catch (e) { key = 'gbOffline'; }
+    gb.sending = false;
+    if ($('#gbSend')) $('#gbSend').disabled = false;
+    gb.note = t(key);
+    if (note) note.textContent = gb.note;
+    if (key !== 'gbThanks') Sound.nope();
+  }
+  function drawBoard() {
+    const { x, y } = BOARD;
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(x, y, 20, 4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#6b4226';
+    ctx.fillRect(x - 17, y - 34, 4, 34); ctx.fillRect(x + 13, y - 34, 4, 34);
+    ctx.fillStyle = '#a0673c'; rrect(ctx, x - 22, y - 46, 44, 28, 3); ctx.fill();
+    ctx.strokeStyle = '#7a4a2a'; ctx.lineWidth = 2; ctx.stroke();
+    const notes = [['#fff6c2', -16, -42, -0.08], ['#c9f1ff', -3, -43, 0.06], ['#ffd6e7', 9, -41, -0.05], ['#e2ffd0', -10, -31, 0.07], ['#fff', 4, -31, -0.04]];
+    for (const [col, nx, ny, r] of notes) {
+      ctx.save(); ctx.translate(x + nx + 4, y + ny + 4); ctx.rotate(r);
+      ctx.fillStyle = col; ctx.fillRect(-5, -4, 10, 8);
+      ctx.fillStyle = '#e8577e'; ctx.fillRect(-1, -5, 2, 2);
+      ctx.restore();
+    }
+    ctx.fillStyle = '#5a3a20';
+    ctx.beginPath(); ctx.moveTo(x - 25, y - 46); ctx.lineTo(x + 25, y - 46); ctx.lineTo(x + 20, y - 51); ctx.lineTo(x - 20, y - 51); ctx.closePath(); ctx.fill();
+  }
+
+  // partikel hati (kucing)
+  function hearts(x, y) {
+    for (let k = 0; k < 6; k++) parts.push({ x: x + (Math.random() - 0.5) * 16, y, vx: (Math.random() - 0.5) * 30, vy: -50 - Math.random() * 40, life: 1, t: 0, color: '#ff6b8a', size: 9, heart: true });
+  }
+
   // ---------------------------------------------------------------- finale
   function checkFinale() {
     if (state.finale || !allSectionsDone() || !allGemsDone()) return;
     state.finale = true; persist();
+    track('finale');
     Sound.win();
     confetti(160);
     setTimeout(() => openModal({
@@ -800,6 +1339,7 @@
         <div class="contact-grid">
           <button class="btn" data-action="contact">${t('finContact')}</button>
           <button class="btn ghost" data-action="classic">${t('finCV')}</button>
+          ${pdfButton('btn ghost')}
           <button class="btn ghost" data-action="reset">${t('finAgain')}</button>
         </div>`,
     }), 900);
@@ -807,7 +1347,7 @@
 
   function resetGame() {
     if (!confirm(t('resetConfirm'))) return;
-    store.save({ muted: state.muted, music: state.music, timeMode: state.timeMode, lang: state.lang });
+    store.save({ muted: state.muted, music: state.music, timeMode: state.timeMode, weather: state.weather, lang: state.lang });
     location.reload();
   }
 
@@ -828,7 +1368,7 @@
   function updateParticles(dt) {
     for (let k = parts.length - 1; k >= 0; k--) {
       const p = parts[k];
-      p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 160 * dt; p.vx *= 0.98;
+      p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (p.heart ? 0 : 160) * dt; p.vx *= 0.98;
       if (p.t > p.life) parts.splice(k, 1);
     }
     for (let k = confs.length - 1; k >= 0; k--) {
@@ -842,6 +1382,16 @@
   const keys = {};
   const KEYMAP = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
   window.addEventListener('keydown', (e) => {
+    // terminal rahasia: tombol ` (atau ~) membuka/menutup
+    if (e.code === 'Backquote' && ui.title.classList.contains('hidden')) {
+      const open = !ui.terminal.classList.contains('hidden');
+      if (open) { e.preventDefault(); closeTerminal(); return; }
+      if (!anyOverlay()) { e.preventDefault(); openTerminal(); return; }
+    }
+    if (!ui.terminal.classList.contains('hidden')) {
+      if (e.code === 'Escape') closeTerminal();
+      return;
+    }
     if (!ui.title.classList.contains('hidden')) {
       if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); startGame(); }
       else if (e.code === 'KeyL') setLang(state.lang === 'id' ? 'en' : 'id');
@@ -867,6 +1417,7 @@
     else if (e.code === 'KeyM') toggleSound();
     else if (e.code === 'KeyN') toggleMusic();
     else if (e.code === 'KeyT') toggleTime();
+    else if (e.code === 'KeyR') toggleWeather();
     else if (e.code === 'KeyL') setLang(state.lang === 'id' ? 'en' : 'id');
     else if (e.code === 'KeyH') openHelp();
   });
@@ -879,13 +1430,15 @@
   }
   const hitNpc = (w) => npcs.find((n) => Math.abs(w.x - n.x) < 14 && w.y > n.y - (sprite(n.sprite) ? CHAR_H : 36) && w.y < n.y + 6);
   const hitFountain = (w) => Math.hypot(w.x - FOUNTAIN.x, w.y - FOUNTAIN.y) < 48;
+  const hitCat = (w) => Math.abs(w.x - cat.x) < 14 && w.y > cat.y - 24 && w.y < cat.y + 6;
+  const hitBoard = (w) => Math.abs(w.x - BOARD.x) < 24 && w.y > BOARD.y - 52 && w.y < BOARD.y + 4;
   const hitRobot = (w) => Math.abs(w.x - robot.x) < 16 && w.y > robot.y - 54 && w.y < robot.y + 6;
 
   let hover = null;
   canvas.addEventListener('pointermove', (e) => {
     if (isTouch) return;
     const w = screenToWorld(e.clientX, e.clientY);
-    hover = (hitRobot(w) ? robot : null) || hitBuilding(w) || hitNpc(w) || (hitFountain(w) ? 'fountain' : null);
+    hover = (hitRobot(w) ? robot : null) || (hitCat(w) ? cat : null) || (hitBoard(w) ? BOARD : null) || hitBuilding(w) || hitNpc(w) || (hitFountain(w) ? 'fountain' : null);
     canvas.style.cursor = hover ? 'pointer' : 'default';
   });
   canvas.addEventListener('pointerdown', (e) => {
@@ -895,6 +1448,8 @@
     if (dlg.active) { advanceDialog(); return; }
     const w = screenToWorld(e.clientX, e.clientY);
     if (hitRobot(w)) return goToRobot();
+    if (hitCat(w)) return goToCat();
+    if (hitBoard(w)) return goToBoard();
     const b = hitBuilding(w);
     if (b) return goToBuilding(b);
     const n = hitNpc(w);
@@ -950,10 +1505,21 @@
       else if (a === 'sound') toggleSound();
       else if (a === 'music') toggleMusic();
       else if (a === 'time') toggleTime();
+      else if (a === 'weather') toggleWeather();
+      else if (a === 'terminal') { ui.settings.classList.add('hidden'); openTerminal(); }
+      else if (a === 'payroll') { if (modalKind) closeModal(); openPayrollGame(); }
+      else if (a === 'pg-toggle') pgToggle(+t2.dataset.i);
+      else if (a === 'pg-run') pgRun();
+      else if (a === 'pg-again') { pg.sel.clear(); pg.result = null; renderPayroll(); }
+      else if (a === 'etl') etlSelect(+t2.dataset.i);
+      else if (a === 'gb-reload') loadGuestbook();
     }
   });
+  document.addEventListener('click', (e) => { if (e.target.closest('[data-pdf]')) track('pdf_download', { lang: state.lang }); });
 
   document.addEventListener('submit', (e) => {
+    if (e.target.id === 'gbForm') { e.preventDefault(); postGuestbook(); return; }
+    if (e.target.id === 'termForm') { e.preventDefault(); runCommand(ui.termInput.value); ui.termInput.value = ''; return; }
     if (e.target.id !== 'chatForm') return;
     e.preventDefault();
     const input = $('#chatInput');
@@ -994,6 +1560,14 @@
     $('#setSoundVal').textContent = state.muted ? '🔇 ' + t('off') : '🔊 ' + t('on');
     $('#setMusicVal').textContent = state.music ? '🎵 ' + t('on') : '🔕 ' + t('off');
     $('#setTimeVal').textContent = MODE_ICON[state.timeMode] + ' ' + t({ auto: 'modeAuto', day: 'modeDay', night: 'modeNight' }[state.timeMode]);
+    $('#setWeatherVal').textContent = { auto: '🌦️ ', clear: '☀️ ', rain: '🌧️ ' }[state.weather] + t({ auto: 'wAuto', clear: 'wClear', rain: 'wRain' }[state.weather]);
+  }
+  function toggleWeather() {
+    const order = ['auto', 'clear', 'rain'];
+    state.weather = order[(order.indexOf(state.weather) + 1) % order.length]; persist();
+    weather.timer = 20 + Math.random() * 40;
+    updateSettingsUI();
+    Sound.click();
   }
 
   // ---------------------------------------------------------------- ganti bahasa
@@ -1009,6 +1583,9 @@
     });
     document.querySelectorAll('[data-lang]').forEach((el) => el.classList.toggle('active', el.dataset.lang === state.lang));
     $('#btnLang').textContent = state.lang.toUpperCase();
+    const pdf = $('#btnPdf');
+    if (pdf) { pdf.href = pdfUrl(); pdf.textContent = t('downloadPdf'); }
+    if (ui.termInput) ui.termInput.placeholder = 'help';
     $('#hudName').textContent = CV.name || '';
     $('#hudRole').textContent = CV.role || '';
     $('#titleName').textContent = CV.name || '';
@@ -1035,12 +1612,19 @@
         ui.modalBody.innerHTML = RENDER[b.id](false);
       } else if (modalKind === 'help') {
         ui.modalTitle.textContent = t('helpTitle'); ui.modalBody.innerHTML = t('help');
+      } else if (modalKind === 'payroll') {
+        ui.modalTitle.textContent = t('pgTitle');
+        if (!pg.running) renderPayroll();
+      } else if (modalKind === 'guestbook') {
+        ui.modalTitle.textContent = t('gbName');
+        renderGuestbookShell(); renderGbList();
       } else if (modalKind === 'chat') {
         const typed = $('#chatInput')?.value || '';
         const cb = modalOnClose; openChat(); modalOnClose = cb;
         $('#chatInput').value = typed;
       }
     }
+    track('language', { lang: l });
     if (ui.title.classList.contains('hidden')) toast(t('langToast'), 1600);
     else Sound.click();
   }
@@ -1094,6 +1678,15 @@
     const t = tileOf(n);
     walkTo(t.x, t.y + 1, { type: 'npc', n, tries: 3 });
   }
+  function goToCat() {
+    if (Math.hypot(player.x - cat.x, player.y - cat.y) < 40) return interactCat();
+    const ct = tileOf(cat);
+    walkTo(ct.x, ct.y, { type: 'cat', tries: 3 });
+  }
+  function goToBoard() {
+    if (Math.hypot(player.x - BOARD.x, player.y - BOARD.y) < 44) return openGuestbook();
+    walkTo(BOARD.tx, BOARD.ty + 1, { type: 'board' });
+  }
   function goToRobot() {
     if (Math.hypot(player.x - robot.x, player.y - robot.y) < 46) return openChat();
     walkTo(robot.tx, robot.ty + 1, { type: 'robot' });
@@ -1109,6 +1702,11 @@
     if (t.type === 'building') openSection(t.b);
     else if (t.type === 'fountain') { player.dir = 'up'; makeWish(); }
     else if (t.type === 'robot') { player.dir = 'up'; openChat(); }
+    else if (t.type === 'board') { player.dir = 'up'; openGuestbook(); }
+    else if (t.type === 'cat') {
+      if (Math.hypot(player.x - cat.x, player.y - cat.y) < 52) interactCat();
+      else if (t.tries > 0) { const ct = tileOf(cat); walkTo(ct.x, ct.y, { ...t, tries: t.tries - 1 }); }
+    }
     else if (t.type === 'npc') {
       if (Math.hypot(player.x - t.n.x, player.y - t.n.y) < 56) startDialog(t.n);
       else if (t.tries > 0) { const nt = tileOf(t.n); walkTo(nt.x, nt.y + 1, { ...t, tries: t.tries - 1 }); }
@@ -1129,6 +1727,10 @@
     }
     const rd = Math.hypot(player.x - robot.x, player.y - robot.y);
     if (rd < 46 && rd < bd) { bd = rd; best = { type: 'robot' }; }
+    const cd = Math.hypot(player.x - cat.x, player.y - cat.y);
+    if (cd < 36 && cd < bd) { bd = cd; best = { type: 'cat' }; }
+    const gd = Math.hypot(player.x - BOARD.x, player.y - BOARD.y);
+    if (gd < 44 && gd < bd) { bd = gd; best = { type: 'board' }; }
     const fd = Math.hypot(player.x - FOUNTAIN.x, player.y - FOUNTAIN.y);
     if (fd < 78 && fd < bd) best = { type: 'fountain' };
     return best;
@@ -1139,6 +1741,8 @@
     else if (it.type === 'npc') startDialog(it.n);
     else if (it.type === 'fountain') makeWish();
     else if (it.type === 'robot') openChat();
+    else if (it.type === 'cat') interactCat();
+    else if (it.type === 'board') openGuestbook();
   }
   let lastPromptKey = '';
   function updatePrompt() {
@@ -1149,6 +1753,8 @@
       if (current.type === 'building') { key = 'b' + current.b.id; text = t('pEnter', { v, place: `${current.b.icon} ${current.b.name}` }); }
       else if (current.type === 'npc') { key = 'n' + current.n.i; text = t('pTalk', { v, name: current.n.name }); }
       else if (current.type === 'robot') { key = 'r'; text = t('pAsk', { v, name: t('aiName') }); }
+      else if (current.type === 'cat') { key = 'c' + state.catFed; text = t(state.catFed ? 'pPet' : 'pFeed', { v, name: t('catName') }); }
+      else if (current.type === 'board') { key = 'g'; text = t('pGuest', { v }); }
       else { key = 'f'; text = t('pWish', { v }); }
       key += state.lang;
     }
@@ -1237,7 +1843,10 @@
   function update(dt) {
     time += dt;
     updateDayNight(dt);
+    updateWeather(dt);
     updateFlies(dt);
+    updateEtl(dt);
+    updateCat(dt);
     if (lights.flash) { lights.flash.t -= dt; if (lights.flash.t <= 0) lights.flash = null; }
     updateParticles(dt);
     updateDialog(dt);
@@ -1910,6 +2519,8 @@
     ents.push({ y: FOUNTAIN.y + 30, d: drawFountain });
     for (const L of LAMPS) if (visible(L.x / TILE, L.y / TILE)) ents.push({ y: L.y, d: () => drawLamp(L) });
     ents.push({ y: robot.y, d: drawRobot });
+    ents.push({ y: BOARD.y, d: drawBoard });
+    if (visible(cat.x / TILE, cat.y / TILE)) ents.push({ y: cat.y, d: drawCat });
     for (const n of npcs) ents.push({ y: n.y, d: () => drawCharacter(n) });
     ents.push({ y: player.y + 0.1, d: () => drawCharacter(player) });
     ents.sort((a, b) => a.y - b.y);
@@ -1918,11 +2529,15 @@
     for (const p of parts) {
       ctx.globalAlpha = 1 - p.t / p.life;
       ctx.fillStyle = p.color;
-      ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+      if (p.heart) {
+        ctx.font = `${p.size}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('♥', p.x, p.y);
+      } else ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
     }
     ctx.globalAlpha = 1;
 
     renderLighting(s, cx, cy, visible);
+    drawRain();
     ctx.setTransform(s, 0, 0, s, -cx * s, -cy * s);
     for (const b of SECTIONS) if (visible(b.tx + 2, b.ty, 6)) drawSign(b);
     for (const n of npcs) drawNpcBubble(n);
@@ -1956,6 +2571,8 @@
     for (const n of npcs) mctx.fillRect(n.x / 8 - 1, n.y / 8 - 3, 2, 3);
     mctx.fillStyle = Math.sin(time * 6) > 0 ? '#d97757' : '#7fe3ff';
     mctx.fillRect(robot.x / 8 - 1.5, robot.y / 8 - 4, 3, 4);
+    mctx.fillStyle = '#a0673c'; mctx.fillRect(BOARD.x / 8 - 2, BOARD.y / 8 - 4, 4, 3);
+    mctx.fillStyle = '#f2a65a'; mctx.fillRect(cat.x / 8 - 1, cat.y / 8 - 2, 2, 2);
     if (dark > 0.05) { mctx.fillStyle = `rgba(10,16,50,${dark * 0.6})`; mctx.fillRect(0, 0, mm.width, mm.height); }
     mctx.strokeStyle = 'rgba(255,255,255,0.7)'; mctx.lineWidth = 1;
     mctx.strokeRect(cam.x / 8 + 0.5, cam.y / 8 + 0.5, vw / zoom / 8, vh / zoom / 8);
@@ -1979,6 +2596,7 @@
       setTimeout(() => toast(t('robotHint'), 4000), 10000);
     } else toast(t('welcomeBack'));
     Music.start();
+    track('game_start', { lang: state.lang });
   }
 
   function initUI() {
@@ -2011,5 +2629,5 @@
   requestAnimationFrame(frame);
 
   // untuk debugging di console
-  window.cvQuest = { state, player, gems, npcs, robot, SECTIONS, chat, setLang, get dark() { return dark; } };
+  window.cvQuest = { state, player, gems, npcs, robot, cat, weather, SECTIONS, chat, setLang, get dark() { return dark; } };
 })();

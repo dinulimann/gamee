@@ -49,6 +49,10 @@ window.I18N = {
       talker: ['Ramah Tamah', 'Ngobrol dengan semua warga'],
       wish: ['Penuh Harapan', 'Lempar koin ke air mancur'],
       ai: ['Teman AI', 'Bertanya pada Robot Claude'],
+      optimizer: ['Ahli Optimasi', 'Selesaikan simulasi payroll di bawah 1 menit'],
+      hacker: ['Hacker Desa', 'Jalankan query SQL di terminal rahasia'],
+      cat: ['Sahabat Kucing', 'Beri makan kucing desa'],
+      guest: ['Tamu Teladan', 'Tinggalkan pesan di papan tamu'],
       all_sections: ['Penjelajah', 'Kunjungi semua bangunan'],
       all_gems: ['Kolektor', 'Kumpulkan semua permata skill'],
     },
@@ -97,8 +101,10 @@ window.I18N = {
       <li>💬 Ngobrol dengan warga: klik warganya atau tekan <kbd>E</kbd> saat berada di dekatnya.</li>
       <li>🤖 Robot Claude di alun-alun bisa ditanya apa saja tentang CV ini.</li>
       <li>💎 Permata berkilau = skill. Jalan di atasnya untuk mengambilnya.</li>
+      <li>🎮 Di Kantor Karier ada simulasi optimasi payroll, di Lab Proyek ada animasi pipeline data.</li>
+      <li>📋 Papan tamu di alun-alun · 🐱 kucing desa suka ikan · 💻 tekan <kbd>&#96;</kbd> untuk terminal rahasia.</li>
       <li>🗺️ Klik minimap di pojok kanan bawah untuk berjalan cepat.</li>
-      <li>⌨️ Pintasan: <kbd>Q</kbd> misi · <kbd>C</kbd> CV klasik · <kbd>M</kbd> efek suara · <kbd>N</kbd> musik · <kbd>T</kbd> siang/malam · <kbd>L</kbd> bahasa · <kbd>Esc</kbd> tutup.</li>
+      <li>⌨️ Pintasan: <kbd>Q</kbd> misi · <kbd>C</kbd> CV klasik · <kbd>M</kbd> efek suara · <kbd>N</kbd> musik · <kbd>T</kbd> siang/malam · <kbd>R</kbd> cuaca · <kbd>&#96;</kbd> terminal · <kbd>L</kbd> bahasa · <kbd>Esc</kbd> tutup.</li>
     </ul>
     <p class="muted">Progresmu tersimpan otomatis di browser ini.</p>`,
 
@@ -151,7 +157,7 @@ window.I18N = {
     aiThinking: 'Robot Claude sedang berpikir…',
     aiYou: 'Kamu',
     aiClear: '🧹 Mulai ulang',
-    aiDisclaimer: 'Jawaban dibuat oleh AI (Claude) berdasarkan isi CV ini dan bisa saja keliru.',
+    aiDisclaimer: 'Jawaban dibuat oleh AI (Claude) berdasarkan isi CV ini dan bisa saja keliru. Pertanyaan dicatat tanpa identitas untuk memperbaiki CV ini.',
     aiOffline: 'Asisten AI belum aktif di server ini. Sementara itu, semua informasi tetap bisa kamu baca di bangunan-bangunan desa 🏠',
     aiError: 'Maaf, sinyalku sedang terganggu 📡 Coba tanya lagi sebentar lagi, ya.',
     aiRate: 'Pelan-pelan ya 😅 Terlalu banyak pertanyaan dalam waktu singkat. Coba lagi sebentar lagi.',
@@ -162,6 +168,81 @@ window.I18N = {
       'Posisi apa yang sedang dicari?',
       'Apa saja skill backend-nya?',
     ],
+
+    loading: 'Memuat desa…',
+    downloadPdf: '⬇️ Unduh CV (PDF)',
+    tTerminal: 'Terminal (tombol `)',
+    sWeather: 'Cuaca',
+    sTerminal: 'Terminal rahasia',
+    wAuto: 'Otomatis',
+    wClear: 'Cerah',
+    wRain: 'Hujan',
+    rainStarts: '🌧️ Hujan mulai turun…',
+    rainStops: '🌤️ Hujan sudah reda.',
+    npcRain: 'Wah, hujan! Untung CV-nya tahan air 😄',
+
+    pgOpen: '🎮 Main: Optimasi Payroll',
+    pgTitle: 'Simulasi: Optimasi Payroll',
+    pgIntro: 'Proses payroll untuk ±5.000 karyawan memakan waktu lebih dari 12 menit. Pilih langkah-langkah optimasi, lalu jalankan payroll. Bisakah kamu membuatnya selesai di bawah 1 menit?',
+    pgEstimate: 'Perkiraan waktu proses',
+    pgRun: '▶ Jalankan payroll',
+    pgRunning: 'Memproses karyawan…',
+    pgProcessed: '{n} / {t} karyawan',
+    pgWin: '🎉 Selesai dalam <b>{time}</b>! Dari lebih dari 10 menit menjadi di bawah 1 menit — seperti hasil optimasi stored procedure yang dikerjakan {name} di PELNI.',
+    pgSlow: '⏱ Selesai dalam <b>{time}</b>. Masih bisa lebih cepat — coba kombinasi langkah lain!',
+    pgNote: 'Simulasi sederhana untuk ilustrasi; angka tiap langkah bukan hasil pengukuran asli.',
+    pgAgain: '🔁 Coba lagi',
+    pgMin: '{m} mnt {s} dtk',
+    pgSec: '{s} dtk',
+    pgOpts: [
+      ['Ganti loop baris-per-baris dengan query berbasis set', 'Hitung semua karyawan sekaligus di database, bukan satu per satu.'],
+      ['Tambah index di kolom join (karyawan, periode)', 'Database tidak perlu membaca seluruh tabel untuk setiap pencarian.'],
+      ['Satukan perhitungan BPJS & PPh 21 di stored procedure', 'Tidak ada lagi bolak-balik data antara PHP dan database.'],
+      ['Simpan data referensi di temporary table', 'Tarif & tabel pajak cukup dibaca sekali.'],
+      ['Gandakan RAM server', 'Sedikit membantu, tapi masalah utamanya ada di query.'],
+      ['Tulis log untuk setiap baris yang diproses', 'Hmm… menulis 5.000 baris log justru memperlambat.'],
+    ],
+
+    etlTitle: '🔄 Pipeline integrasi payroll',
+    etlHint: 'Ketuk setiap tahap untuk melihat penjelasannya.',
+    etlRows: 'baris tersinkron',
+    etlNodes: [
+      ['Oracle', 'Sumber data karyawan & keuangan. Data diambil dari sini sebagai titik awal.'],
+      ['PostgreSQL', 'Data disalin dan dirapikan, lalu diproses oleh stored procedure payroll.'],
+      ['Payroll', 'Perhitungan gaji: PPh 21, BPJS, pensiun, koperasi, piutang, dan proration.'],
+      ['Jurnal Oracle', 'Hasil payroll dikirim kembali ke Oracle sebagai jurnal keuangan.'],
+    ],
+
+    termHelp: 'Perintah yang tersedia:',
+    termNotFound: "perintah tidak dikenal: {c} — ketik 'help'",
+    termSqlError: 'ERROR: {e}',
+    termRows: '({n} baris)',
+    termHire: '✉️ Membuka Kantor Pos… terima kasih sudah tertarik!',
+    termCoffee: '☕ Menyeduh kopi… selesai. Produktivitas +10.',
+    termSudo: 'Permintaan ditolak: kamu bukan root. Tapi kamu tetap bisa mengirim email 😉',
+    termWelcome: "Selamat datang di cv-quest shell. Ketik 'help' untuk daftar perintah.",
+
+    catName: 'Kopi',
+    pFeed: '{v} — beri makan {name} 🐟',
+    pPet: '{v} — elus {name} 🐾',
+    catFed: '🐟 {name} makan dengan lahap… sekarang ia mengikutimu ke mana-mana! 🐾',
+    catPet: ['Meong~ 😺', 'Purrr… 💛', '{name} menggesekkan kepalanya ke kakimu 🐾', '{name} berguling minta dielus 😹'],
+
+    gbName: 'Papan Tamu',
+    pGuest: '{v} — baca papan tamu 📋',
+    gbIntro: 'Tinggalkan pesan untuk {name}! Pesanmu akan terlihat oleh pengunjung lain.',
+    gbNamePh: 'Nama (opsional)',
+    gbMsgPh: 'Tulis pesan singkat… (maks. 140 karakter)',
+    gbPost: 'Tempel 📌',
+    gbEmpty: 'Belum ada pesan. Jadilah yang pertama! ✍️',
+    gbOffline: 'Papan tamu belum aktif di server ini.',
+    gbLoading: 'Memuat pesan…',
+    gbThanks: '📌 Pesanmu sudah ditempel. Terima kasih!',
+    gbRejected: 'Pesan ditolak: hindari tautan dan kata-kata kasar ya 🙏',
+    gbRate: 'Tunggu sebentar sebelum menulis lagi 🙏',
+    gbError: 'Gagal mengirim pesan. Coba lagi nanti.',
+    gbAnon: 'Pengunjung',
+    gbRules: 'Tanpa tautan & kata kasar. Pesan bisa dihapus oleh pemilik situs.',
   },
 
   en: {
@@ -209,6 +290,10 @@ window.I18N = {
       talker: ['Friendly Neighbor', 'Talk to every villager'],
       wish: ['Wishful Thinker', 'Toss a coin into the fountain'],
       ai: ['AI Buddy', 'Ask Robot Claude a question'],
+      optimizer: ['Optimizer', 'Finish the payroll simulation in under a minute'],
+      hacker: ['Village Hacker', 'Run a SQL query in the secret terminal'],
+      cat: ['Cat Whisperer', 'Feed the village cat'],
+      guest: ['Kind Visitor', 'Leave a message in the guestbook'],
       all_sections: ['Explorer', 'Visit every building'],
       all_gems: ['Collector', 'Collect every skill gem'],
     },
@@ -257,8 +342,10 @@ window.I18N = {
       <li>💬 Talk to villagers: click them or press <kbd>E</kbd> when you're close.</li>
       <li>🤖 Robot Claude in the plaza can answer any question about this CV.</li>
       <li>💎 Sparkling gems are skills. Walk over one to collect it.</li>
+      <li>🎮 The Career Office has a payroll optimization simulation; the Project Lab has a data pipeline animation.</li>
+      <li>📋 Guestbook in the plaza · 🐱 the village cat loves fish · 💻 press <kbd>&#96;</kbd> for the secret terminal.</li>
       <li>🗺️ Click the minimap in the bottom-right corner to travel quickly.</li>
-      <li>⌨️ Shortcuts: <kbd>Q</kbd> quests · <kbd>C</kbd> plain CV · <kbd>M</kbd> sound effects · <kbd>N</kbd> music · <kbd>T</kbd> day/night · <kbd>L</kbd> language · <kbd>Esc</kbd> close.</li>
+      <li>⌨️ Shortcuts: <kbd>Q</kbd> quests · <kbd>C</kbd> plain CV · <kbd>M</kbd> sound effects · <kbd>N</kbd> music · <kbd>T</kbd> day/night · <kbd>R</kbd> weather · <kbd>&#96;</kbd> terminal · <kbd>L</kbd> language · <kbd>Esc</kbd> close.</li>
     </ul>
     <p class="muted">Your progress is saved automatically in this browser.</p>`,
 
@@ -311,7 +398,7 @@ window.I18N = {
     aiThinking: 'Robot Claude is thinking…',
     aiYou: 'You',
     aiClear: '🧹 Reset chat',
-    aiDisclaimer: 'Answers are generated by AI (Claude) from this CV and may contain mistakes.',
+    aiDisclaimer: 'Answers are generated by AI (Claude) from this CV and may contain mistakes. Questions are logged anonymously to improve this CV.',
     aiOffline: "The AI assistant isn't enabled on this server yet. Meanwhile, everything is still in the village buildings 🏠",
     aiError: 'Sorry, my signal is a bit weak 📡 Please ask again in a moment.',
     aiRate: "Easy there 😅 That's a lot of questions in a short time. Please try again shortly.",
@@ -322,5 +409,79 @@ window.I18N = {
       'What roles is Dinul looking for?',
       'What are the backend skills?',
     ],
+    loading: 'Loading the village…',
+    downloadPdf: '⬇️ Download CV (PDF)',
+    tTerminal: 'Terminal (` key)',
+    sWeather: 'Weather',
+    sTerminal: 'Secret terminal',
+    wAuto: 'Auto',
+    wClear: 'Clear',
+    wRain: 'Rain',
+    rainStarts: "🌧️ It's starting to rain…",
+    rainStops: '🌤️ The rain has stopped.',
+    npcRain: "Oh, rain! Good thing the CV is waterproof 😄",
+
+    pgOpen: '🎮 Play: Payroll Optimization',
+    pgTitle: 'Simulation: Payroll Optimization',
+    pgIntro: 'Running payroll for ±5,000 employees takes over 12 minutes. Pick optimization steps, then run the payroll. Can you get it under 1 minute?',
+    pgEstimate: 'Estimated run time',
+    pgRun: '▶ Run payroll',
+    pgRunning: 'Processing employees…',
+    pgProcessed: '{n} / {t} employees',
+    pgWin: '🎉 Done in <b>{time}</b>! From over 10 minutes to under 1 minute — like the stored procedure optimization {name} delivered at PELNI.',
+    pgSlow: '⏱ Done in <b>{time}</b>. It can go faster — try another combination!',
+    pgNote: 'A simple illustrative simulation; the numbers per step are not real measurements.',
+    pgAgain: '🔁 Try again',
+    pgMin: '{m} min {s} s',
+    pgSec: '{s} s',
+    pgOpts: [
+      ['Replace row-by-row loops with set-based queries', 'Calculate every employee at once in the database instead of one at a time.'],
+      ['Add indexes on join columns (employee, period)', 'The database no longer scans whole tables for every lookup.'],
+      ['Move BPJS & PPh 21 calculations into the stored procedure', 'No more back-and-forth between PHP and the database.'],
+      ['Keep reference data in a temporary table', 'Tax rates and tables are read only once.'],
+      ['Double the server RAM', 'Helps a little, but the real bottleneck is the queries.'],
+      ['Write a log line for every processed row', 'Hmm… writing 5,000 log lines actually slows things down.'],
+    ],
+
+    etlTitle: '🔄 Payroll integration pipeline',
+    etlHint: 'Tap each stage to see what it does.',
+    etlRows: 'rows synced',
+    etlNodes: [
+      ['Oracle', 'Source of employee and finance data — where every run starts.'],
+      ['PostgreSQL', 'Data is copied and cleaned, then processed by the payroll stored procedures.'],
+      ['Payroll', 'Salary calculation: PPh 21 income tax, BPJS, pension, cooperative, receivables and proration.'],
+      ['Oracle Journal', 'Payroll results are sent back to Oracle as financial journal entries.'],
+    ],
+
+    termHelp: 'Available commands:',
+    termNotFound: "command not found: {c} — type 'help'",
+    termSqlError: 'ERROR: {e}',
+    termRows: '({n} rows)',
+    termHire: '✉️ Opening the Post Office… thanks for your interest!',
+    termCoffee: '☕ Brewing coffee… done. Productivity +10.',
+    termSudo: "Permission denied: you're not root. You can still send an email though 😉",
+    termWelcome: "Welcome to the cv-quest shell. Type 'help' for a list of commands.",
+
+    catName: 'Kopi',
+    pFeed: '{v} — feed {name} 🐟',
+    pPet: '{v} — pet {name} 🐾',
+    catFed: '🐟 {name} eats happily… and now follows you everywhere! 🐾',
+    catPet: ['Meow~ 😺', 'Purrr… 💛', '{name} rubs against your legs 🐾', '{name} rolls over for belly rubs 😹'],
+
+    gbName: 'Guestbook',
+    pGuest: '{v} — read the guestbook 📋',
+    gbIntro: 'Leave a message for {name}! Other visitors will see it too.',
+    gbNamePh: 'Name (optional)',
+    gbMsgPh: 'Write a short message… (max 140 characters)',
+    gbPost: 'Pin it 📌',
+    gbEmpty: 'No messages yet. Be the first! ✍️',
+    gbOffline: "The guestbook isn't enabled on this server yet.",
+    gbLoading: 'Loading messages…',
+    gbThanks: '📌 Your message is pinned. Thank you!',
+    gbRejected: 'Message rejected: please avoid links and rude words 🙏',
+    gbRate: 'Please wait a moment before posting again 🙏',
+    gbError: "Couldn't send your message. Please try again later.",
+    gbAnon: 'Visitor',
+    gbRules: 'No links or rude words. The site owner can remove messages.',
   },
 };
