@@ -29,7 +29,7 @@
         "backend dan full-stack development. Sehari-hari saya bekerja dengan PHP, TypeScript, Node.js, dan " +
         "database relasional seperti PostgreSQL dan Oracle.",
       "Pengalaman paling menonjol saya adalah mengerjakan Payroll Management System untuk PT PELNI sebagai " +
-        "developer di PT Solusi Integrasi Utama (vendor PELNI). Sistem ini melayani " +
+        "programmer di PT Solusi Integrasi Utama (vendor PELNI). Sistem ini melayani " +
         "sekitar 4.800–5.000 karyawan — mulai dari perhitungan PPh 21, BPJS, pensiun, koperasi, hingga " +
         "integrasi jurnal ke Oracle. Salah satu pencapaian favorit saya: memangkas proses payroll dari lebih " +
         "dari 10 menit menjadi kurang dari 1 menit lewat optimasi stored procedure.",
@@ -58,7 +58,7 @@
 
     experience: [
       {
-        title: "Software Developer — Payroll Management System",
+        title: "Programmer — Payroll Management System",
         company: "PT Solusi Integrasi Utama (vendor PT PELNI)",
         period: "",
         points: [
@@ -71,7 +71,7 @@
         ],
       },
       {
-        title: "Backend Developer — Aplikasi Ticketing",
+        title: "Programmer — Aplikasi Ticketing",
         company: "PT Solusi Integrasi Utama (vendor PT PELNI)",
         period: "",
         points: [
@@ -139,7 +139,7 @@
           "Sistem payroll untuk ±4.800–5.000 karyawan: perhitungan PPh 21, BPJS, pensiun, koperasi, piutang, " +
           "dan proration; integrasi Oracle ↔ PostgreSQL; slip & laporan via JasperServer. " +
           "Optimasi stored procedure memangkas proses dari >10 menit menjadi <1 menit. " +
-          "Dikerjakan sebagai developer di PT Solusi Integrasi Utama.",
+          "Dikerjakan sebagai programmer di PT Solusi Integrasi Utama.",
         tech: ["PHP", "CodeIgniter", "PostgreSQL", "Oracle", "JasperServer", "Docker"],
         link: "",
       },
@@ -224,7 +224,7 @@
       "Hi! I'm Dinul Iman, an Information Technology graduate from Universitas Sumatera Utara focused on " +
         "backend and full-stack development. Day to day I work with PHP, TypeScript, Node.js and relational " +
         "databases such as PostgreSQL and Oracle.",
-      "My most notable work is the Payroll Management System I worked on for PT PELNI as a developer at " +
+      "My most notable work is the Payroll Management System I worked on for PT PELNI as a programmer at " +
         "PT Solusi Integrasi Utama, a PELNI vendor. It serves around 4,800–5,000 " +
         "employees — from PPh 21 income tax, BPJS, pension and cooperative deductions to journal integration " +
         "with Oracle. A favourite achievement: cutting the payroll run from more than 10 minutes to under " +
@@ -254,7 +254,7 @@
 
     experience: [
       {
-        title: "Software Developer — Payroll Management System",
+        title: "Programmer — Payroll Management System",
         company: "PT Solusi Integrasi Utama (PT PELNI vendor)",
         points: [
           "Developed a PHP/CodeIgniter payroll system for ±4,800–5,000 employees.",
@@ -266,7 +266,7 @@
         ],
       },
       {
-        title: "Backend Developer — Ticketing Application",
+        title: "Programmer — Ticketing Application",
         company: "PT Solusi Integrasi Utama (PT PELNI vendor)",
         points: [
           "Developed the backend of a ticketing application with NestJS and PostgreSQL.",
@@ -320,7 +320,7 @@
           "Payroll system for ±4,800–5,000 employees: PPh 21 income tax, BPJS, pension, cooperative, receivables " +
           "and proration; Oracle ↔ PostgreSQL integration; payslips & reports via JasperServer. " +
           "Stored procedure optimization cut the run from >10 minutes to <1 minute. " +
-          "Built as a developer at PT Solusi Integrasi Utama.",
+          "Built as a programmer at PT Solusi Integrasi Utama.",
       },
       {
         name: "Payroll ↔ Oracle Integration Pipeline",
