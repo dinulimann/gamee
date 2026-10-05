@@ -438,7 +438,6 @@
     { id: 'first_gem', icon: '💎' },
     { id: 'talker', icon: '💬' },
     { id: 'wish', icon: '⛲' },
-    { id: 'ai', icon: '🤖' },
     { id: 'optimizer', icon: '⚡' },
     { id: 'hacker', icon: '💻' },
     { id: 'cat', icon: '🐱' },
@@ -446,6 +445,7 @@
     { id: 'all_sections', icon: '🗺️' },
     { id: 'all_gems', icon: '👑' },
   ];
+  const achCount = () => ACH.filter((a) => state.ach.includes(a.id)).length;
   const achName = (a) => t('ach.' + a.id)[0];
   const achDesc = (a) => t('ach.' + a.id)[1];
   function unlock(id) {
@@ -465,7 +465,7 @@
   function updateProgress() {
     const v = SECTIONS.filter((s) => state.visited.includes(s.id)).length;
     const g = gems.filter((x) => gemCollected(x.i)).length;
-    ui.progress.innerHTML = `<span title="${esc(t('pVisited'))}">🏠 ${v}/${SECTIONS.length}</span><span title="${esc(t('pGems'))}">💎 ${g}/${gems.length}</span><span title="${esc(t('pAch'))}">🏆 ${state.ach.length}/${ACH.length}</span><span title="${esc(t('pTime'))}" id="hudClock"></span>`;
+    ui.progress.innerHTML = `<span title="${esc(t('pVisited'))}">🏠 ${v}/${SECTIONS.length}</span><span title="${esc(t('pGems'))}">💎 ${g}/${gems.length}</span><span title="${esc(t('pAch'))}">🏆 ${achCount()}/${ACH.length}</span><span title="${esc(t('pTime'))}" id="hudClock"></span>`;
     lastClock = '';
   }
 
@@ -635,7 +635,6 @@
     modalOnClose = onClose || null;
     modalSection = section || null;
     modalKind = kind || (section ? 'section' : null);
-    ui.modal.querySelector('.modal-card').classList.toggle('chat-card', modalKind === 'chat');
     Sound.open();
   }
   function closeModal() {
@@ -758,86 +757,6 @@
     const wishes = t('wishes');
     toast(`🪙 ${wishes[Math.floor(Math.random() * wishes.length)]}`);
     unlock('wish');
-  }
-
-  // ---------------------------------------------------------------- Robot Claude (asisten AI)
-  // Robot melayang di alun-alun. Pertanyaan dikirim ke /api/ask (Vercel Function) yang memanggil Claude.
-  const robot = { x: 25 * TILE + 16, y: 13 * TILE + 22, tx: 25, ty: 13 };
-  const chat = { msgs: [], busy: false };
-
-  function fmtAnswer(text) {
-    return esc(text)
-      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
-      .replace(/^\s*[-*•]\s+/gm, '• ')
-      .replace(/\n/g, '<br>');
-  }
-  function openChat() {
-    player.path = null; player.target = null;
-    openModal({
-      title: t('aiTitle'), icon: '🤖', color: '#d97757', kind: 'chat',
-      html: `
-        <div class="chat">
-          <div class="chat-log" id="chatLog" aria-live="polite"></div>
-          <div class="chat-suggest" id="chatSuggest"></div>
-          <form class="chat-form" id="chatForm" autocomplete="off">
-            <input id="chatInput" maxlength="500" placeholder="${esc(t('aiPlaceholder'))}" aria-label="${esc(t('aiPlaceholder'))}" />
-            <button class="btn" id="chatSend" type="submit">${esc(t('aiSend'))}</button>
-          </form>
-          <div class="chat-foot">
-            <span class="muted">${esc(t('aiDisclaimer'))}</span>
-            <button class="btn ghost small" type="button" data-action="chat-clear">${esc(t('aiClear'))}</button>
-          </div>
-        </div>`,
-    });
-    renderChat();
-    if (!isTouch) setTimeout(() => $('#chatInput')?.focus(), 50);
-  }
-  function renderChat() {
-    const log = $('#chatLog');
-    if (!log || modalKind !== 'chat') return;
-    const rows = [`<div class="msg bot">${esc(t('aiIntro', { name: CV.name }))}</div>`];
-    for (const m of chat.msgs) {
-      if (m.role === 'user') rows.push(`<div class="msg me">${esc(m.content)}</div>`);
-      else rows.push(`<div class="msg bot${m.local ? ' note' : ''}">${fmtAnswer(m.content)}</div>`);
-    }
-    if (chat.busy) rows.push(`<div class="msg bot typing"><i></i><i></i><i></i> ${esc(t('aiThinking'))}</div>`);
-    log.innerHTML = rows.join('');
-    log.scrollTop = log.scrollHeight;
-    const asked = chat.msgs.some((m) => m.role === 'user');
-    $('#chatSuggest').innerHTML = asked ? '' : t('aiSuggest')
-      .map((q) => `<button class="chip-btn" type="button" data-action="ask" data-q="${esc(q)}">${esc(q)}</button>`).join('');
-    $('#chatSend').disabled = chat.busy;
-  }
-  async function askAI(q) {
-    q = String(q || '').trim().slice(0, 500);
-    if (!q || chat.busy) return;
-    const userMsg = { role: 'user', content: q };
-    chat.msgs.push(userMsg);
-    chat.busy = true;
-    Sound.click();
-    renderChat();
-    unlock('ai');
-    track('ai_question');
-    // riwayat yang dikirim: tanpa pesan lokal/gagal, maksimal 10 pesan terakhir, diawali pesan pengguna
-    let history = chat.msgs.filter((m) => !m.local && !m.failed).map(({ role, content }) => ({ role, content })).slice(-10);
-    while (history.length && history[0].role !== 'user') history.shift();
-    let reply = null, note = null;
-    try {
-      const r = await fetch('api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: history }) });
-      let data = {};
-      try { data = await r.json(); } catch (e) { /* bukan JSON */ }
-      if (r.ok && data.answer) reply = data.answer;
-      else if (r.status === 429) note = 'aiRate';
-      else if (data.error === 'refusal') note = 'aiRefusal';
-      else if (r.status === 404 || r.status === 405 || r.status === 503 || data.error === 'not_configured') note = 'aiOffline';
-      else note = 'aiError';
-    } catch (e) {
-      note = 'aiOffline';
-    }
-    chat.busy = false;
-    if (reply) { chat.msgs.push({ role: 'assistant', content: reply }); Sound.seq([660, 880], 0.06, 'triangle', 0.04); }
-    else { userMsg.failed = true; chat.msgs.push({ role: 'assistant', content: t(note), local: true }); Sound.nope(); }
-    renderChat();
   }
 
   // ---------------------------------------------------------------- mini-game: optimasi payroll
@@ -1335,7 +1254,7 @@
       title: t('finTitle'), icon: '🏆', color: '#f2a541', kind: 'finale',
       html: `
         <p style="font-size:1.1rem">${t('finThanks', { name: esc(CV.name) })}</p>
-        <p>${t('finStats', { b: SECTIONS.length, g: gems.length, a: state.ach.length })}</p>
+        <p>${t('finStats', { b: SECTIONS.length, g: gems.length, a: achCount() })}</p>
         <div class="contact-grid">
           <button class="btn" data-action="contact">${t('finContact')}</button>
           <button class="btn ghost" data-action="classic">${t('finCV')}</button>
@@ -1432,13 +1351,12 @@
   const hitFountain = (w) => Math.hypot(w.x - FOUNTAIN.x, w.y - FOUNTAIN.y) < 48;
   const hitCat = (w) => Math.abs(w.x - cat.x) < 14 && w.y > cat.y - 24 && w.y < cat.y + 6;
   const hitBoard = (w) => Math.abs(w.x - BOARD.x) < 24 && w.y > BOARD.y - 52 && w.y < BOARD.y + 4;
-  const hitRobot = (w) => Math.abs(w.x - robot.x) < 16 && w.y > robot.y - 54 && w.y < robot.y + 6;
 
   let hover = null;
   canvas.addEventListener('pointermove', (e) => {
     if (isTouch) return;
     const w = screenToWorld(e.clientX, e.clientY);
-    hover = (hitRobot(w) ? robot : null) || (hitCat(w) ? cat : null) || (hitBoard(w) ? BOARD : null) || hitBuilding(w) || hitNpc(w) || (hitFountain(w) ? 'fountain' : null);
+    hover = (hitCat(w) ? cat : null) || (hitBoard(w) ? BOARD : null) || hitBuilding(w) || hitNpc(w) || (hitFountain(w) ? 'fountain' : null);
     canvas.style.cursor = hover ? 'pointer' : 'default';
   });
   canvas.addEventListener('pointerdown', (e) => {
@@ -1447,7 +1365,6 @@
     if (anyOverlay()) return;
     if (dlg.active) { advanceDialog(); return; }
     const w = screenToWorld(e.clientX, e.clientY);
-    if (hitRobot(w)) return goToRobot();
     if (hitCat(w)) return goToCat();
     if (hitBoard(w)) return goToBoard();
     const b = hitBuilding(w);
@@ -1500,8 +1417,6 @@
       } else if (a === 'reset') resetGame();
       else if (a === 'classic') { closeModal(); openClassic(); }
       else if (a === 'contact') { closeModal(); openSection(SECTIONS.find((s) => s.id === 'contact')); }
-      else if (a === 'ask') askAI(t2.dataset.q);
-      else if (a === 'chat-clear') { if (!chat.busy) { chat.msgs = []; renderChat(); } }
       else if (a === 'sound') toggleSound();
       else if (a === 'music') toggleMusic();
       else if (a === 'time') toggleTime();
@@ -1520,11 +1435,6 @@
   document.addEventListener('submit', (e) => {
     if (e.target.id === 'gbForm') { e.preventDefault(); postGuestbook(); return; }
     if (e.target.id === 'termForm') { e.preventDefault(); runCommand(ui.termInput.value); ui.termInput.value = ''; return; }
-    if (e.target.id !== 'chatForm') return;
-    e.preventDefault();
-    const input = $('#chatInput');
-    askAI(input.value);
-    input.value = '';
   });
 
   $('#btnQuest').onclick = () => { Sound.init(); openQuest(); };
@@ -1629,10 +1539,6 @@
       } else if (modalKind === 'guestbook') {
         ui.modalTitle.textContent = t('gbName');
         renderGuestbookShell(); renderGbList();
-      } else if (modalKind === 'chat') {
-        const typed = $('#chatInput')?.value || '';
-        const cb = modalOnClose; openChat(); modalOnClose = cb;
-        $('#chatInput').value = typed;
       }
     }
     track('language', { lang: l });
@@ -1698,10 +1604,6 @@
     if (Math.hypot(player.x - BOARD.x, player.y - BOARD.y) < 44) return openGuestbook();
     walkTo(BOARD.tx, BOARD.ty + 1, { type: 'board' });
   }
-  function goToRobot() {
-    if (Math.hypot(player.x - robot.x, player.y - robot.y) < 46) return openChat();
-    walkTo(robot.tx, robot.ty + 1, { type: 'robot' });
-  }
   function goToFountain() {
     if (Math.hypot(player.x - FOUNTAIN.x, player.y - FOUNTAIN.y) < 78) return makeWish();
     walkTo(22, 17, { type: 'fountain' });
@@ -1712,7 +1614,6 @@
     if (!t) return;
     if (t.type === 'building') openSection(t.b);
     else if (t.type === 'fountain') { player.dir = 'up'; makeWish(); }
-    else if (t.type === 'robot') { player.dir = 'up'; openChat(); }
     else if (t.type === 'board') { player.dir = 'up'; openGuestbook(); }
     else if (t.type === 'cat') {
       if (Math.hypot(player.x - cat.x, player.y - cat.y) < 52) interactCat();
@@ -1736,8 +1637,6 @@
       const d = Math.hypot(player.x - n.x, player.y - n.y);
       if (d < 44 && d < bd) { bd = d; best = { type: 'npc', n }; }
     }
-    const rd = Math.hypot(player.x - robot.x, player.y - robot.y);
-    if (rd < 46 && rd < bd) { bd = rd; best = { type: 'robot' }; }
     const cd = Math.hypot(player.x - cat.x, player.y - cat.y);
     if (cd < 36 && cd < bd) { bd = cd; best = { type: 'cat' }; }
     const gd = Math.hypot(player.x - BOARD.x, player.y - BOARD.y);
@@ -1751,7 +1650,6 @@
     if (it.type === 'building') openSection(it.b);
     else if (it.type === 'npc') startDialog(it.n);
     else if (it.type === 'fountain') makeWish();
-    else if (it.type === 'robot') openChat();
     else if (it.type === 'cat') interactCat();
     else if (it.type === 'board') openGuestbook();
   }
@@ -1763,7 +1661,6 @@
       const v = isTouch ? t('verbTouch') : t('verbKey');
       if (current.type === 'building') { key = 'b' + current.b.id; text = t('pEnter', { v, place: `${current.b.icon} ${current.b.name}` }); }
       else if (current.type === 'npc') { key = 'n' + current.n.i; text = t('pTalk', { v, name: current.n.name }); }
-      else if (current.type === 'robot') { key = 'r'; text = t('pAsk', { v, name: t('aiName') }); }
       else if (current.type === 'cat') { key = 'c' + state.catFed; text = t(state.catFed ? 'pPet' : 'pFeed', { v, name: t('catName') }); }
       else if (current.type === 'board') { key = 'g'; text = t('pGuest', { v }); }
       else { key = 'f'; text = t('pWish', { v }); }
@@ -2341,7 +2238,7 @@
     }
   }
 
-  // ---------------------------------------------------------------- lampu, robot & cahaya malam
+  // ---------------------------------------------------------------- lampu & cahaya malam
   function drawLamp(L) {
     const { x, y } = L, lit = lampLit();
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
@@ -2355,64 +2252,6 @@
     ctx.fillRect(x - 4, y - 45, 8, 8);
     ctx.fillStyle = '#2b2e3a';
     ctx.beginPath(); ctx.moveTo(x - 8, y - 47); ctx.lineTo(x + 8, y - 47); ctx.lineTo(x, y - 53); ctx.closePath(); ctx.fill();
-  }
-
-  function drawRobot() {
-    const { x, y } = robot;
-    const hov = Math.sin(time * 2.5) * 2.5;
-    const by = y - 12 + hov;
-    const chatting = modalKind === 'chat';
-    ctx.fillStyle = 'rgba(0,0,0,0.2)';
-    ctx.beginPath(); ctx.ellipse(x, y, 10 - hov * 0.5, 3.5, 0, 0, Math.PI * 2); ctx.fill();
-    // semburan pendorong
-    const jet = ctx.createRadialGradient(x, by + 3, 0, x, by + 3, 9);
-    jet.addColorStop(0, 'rgba(140,225,255,0.95)'); jet.addColorStop(1, 'rgba(140,225,255,0)');
-    ctx.fillStyle = jet; ctx.beginPath(); ctx.arc(x, by + 4, 9, 0, Math.PI * 2); ctx.fill();
-    // lengan (melambai)
-    const wave = Math.sin(time * 6) * 0.5;
-    ctx.fillStyle = '#b9c1cf';
-    ctx.save(); ctx.translate(x - 11, by - 12); ctx.rotate(0.3); rrect(ctx, -2, 0, 4, 10, 2); ctx.fill(); ctx.restore();
-    ctx.save(); ctx.translate(x + 11, by - 12); ctx.rotate(-0.9 + wave); rrect(ctx, -2, -10, 4, 10, 2); ctx.fill(); ctx.restore();
-    // badan
-    ctx.fillStyle = '#dfe4ec'; rrect(ctx, x - 10, by - 17, 20, 16, 6); ctx.fill();
-    ctx.fillStyle = '#c4cad6'; ctx.fillRect(x - 10, by - 6, 20, 2);
-    ctx.fillStyle = '#d97757'; ctx.beginPath(); ctx.arc(x, by - 10, 3, 0, Math.PI * 2); ctx.fill();
-    // kepala & layar wajah
-    ctx.fillStyle = '#f1f4f8'; rrect(ctx, x - 13, by - 36, 26, 20, 7); ctx.fill();
-    ctx.fillStyle = '#1d2433'; rrect(ctx, x - 10, by - 33, 20, 13, 5); ctx.fill();
-    ctx.fillStyle = '#7fe3ff';
-    const blink = Math.sin(time * 1.7) > 0.97;
-    if (chatting) {
-      ctx.fillRect(x - 6, by - 28, 3, 2); ctx.fillRect(x + 3, by - 28, 3, 2);
-      ctx.beginPath(); ctx.arc(x, by - 26, 3, 0.15 * Math.PI, 0.85 * Math.PI); ctx.lineWidth = 1.4; ctx.strokeStyle = '#7fe3ff'; ctx.stroke();
-    } else {
-      ctx.fillRect(x - 6, by - 30 + (blink ? 2 : 0), 3, blink ? 1 : 5);
-      ctx.fillRect(x + 3, by - 30 + (blink ? 2 : 0), 3, blink ? 1 : 5);
-    }
-    // antena
-    ctx.strokeStyle = '#9aa3b2'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(x, by - 36); ctx.lineTo(x, by - 43); ctx.stroke();
-    ctx.fillStyle = Math.sin(time * 4) > 0 ? '#d97757' : '#ffb38a';
-    ctx.beginPath(); ctx.arc(x, by - 44, 2.6, 0, Math.PI * 2); ctx.fill();
-  }
-
-  function drawRobotBubble() {
-    const near = Math.hypot(player.x - robot.x, player.y - robot.y) < 110 || hover === robot;
-    const y = robot.y - 68 + Math.sin(time * 4) * 2;
-    if (!state.ach.includes('ai') && modalKind !== 'chat') {
-      ctx.fillStyle = '#fff'; rrect(ctx, robot.x - 11, y - 10, 22, 16, 5); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(robot.x - 3, y + 6); ctx.lineTo(robot.x, y + 10); ctx.lineTo(robot.x + 3, y + 6); ctx.fill();
-      ctx.fillStyle = '#d97757'; ctx.font = '900 10px Nunito, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('AI', robot.x, y - 1);
-    }
-    if (near) {
-      const name = t('aiName');
-      ctx.font = '800 10px Nunito, system-ui, sans-serif';
-      const tw = ctx.measureText(name).width + 10, ty = y - 20;
-      ctx.fillStyle = 'rgba(17,21,36,0.8)'; rrect(ctx, robot.x - tw / 2, ty - 7, tw, 14, 6); ctx.fill();
-      ctx.fillStyle = '#ffb38a'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(name, robot.x, ty);
-    }
   }
 
   // Lapisan gelap digambar di kanvas terpisah, lalu "dilubangi" di sekitar sumber cahaya.
@@ -2437,7 +2276,6 @@
       L.push({ x: b.doorX, y: bottom - 24, r: 44, a: 0.7, c: WARM, g: 0.25 });
     }
     L.push({ x: FOUNTAIN.x, y: FOUNTAIN.y, r: 85, a: 0.5, c: COOL, g: 0.22 });
-    L.push({ x: robot.x, y: robot.y - 30, r: 75, a: 0.9, c: COOL, g: 0.35 });
     L.push({ x: player.x, y: player.y - 16, r: 80, a: 0.6, c: WARM, g: 0.12 });
     for (const n of npcs) L.push({ x: n.x, y: n.y - 16, r: 45, a: 0.35 });
     for (const g of gems) {
@@ -2548,7 +2386,6 @@
     for (const b of SECTIONS) if (visible(b.tx + 2, b.ty + 2, 5)) ents.push({ y: (b.ty + BH) * TILE - 4, d: () => drawBuilding(b) });
     ents.push({ y: FOUNTAIN.y + 30, d: drawFountain });
     for (const L of LAMPS) if (visible(L.x / TILE, L.y / TILE)) ents.push({ y: L.y, d: () => drawLamp(L) });
-    ents.push({ y: robot.y, d: drawRobot });
     ents.push({ y: BOARD.y, d: drawBoard });
     if (visible(cat.x / TILE, cat.y / TILE)) ents.push({ y: cat.y, d: drawCat });
     for (const n of npcs) ents.push({ y: n.y, d: () => drawCharacter(n) });
@@ -2571,7 +2408,6 @@
     ctx.setTransform(s, 0, 0, s, -cx * s, -cy * s);
     for (const b of SECTIONS) if (visible(b.tx + 2, b.ty, 6)) drawSign(b);
     for (const n of npcs) drawNpcBubble(n);
-    drawRobotBubble();
 
     // confetti (ruang layar)
     if (confs.length) {
@@ -2599,8 +2435,6 @@
     for (const g of gems) if (!gemCollected(g.i)) { mctx.fillStyle = catColor(CV.skills[g.i].category); mctx.fillRect(g.x / 8 - 1.5, g.y / 8 - 2.5, 3, 3); }
     mctx.fillStyle = '#fff';
     for (const n of npcs) mctx.fillRect(n.x / 8 - 1, n.y / 8 - 3, 2, 3);
-    mctx.fillStyle = Math.sin(time * 6) > 0 ? '#d97757' : '#7fe3ff';
-    mctx.fillRect(robot.x / 8 - 1.5, robot.y / 8 - 4, 3, 4);
     mctx.fillStyle = '#a0673c'; mctx.fillRect(BOARD.x / 8 - 2, BOARD.y / 8 - 4, 4, 3);
     mctx.fillStyle = '#f2a65a'; mctx.fillRect(cat.x / 8 - 1, cat.y / 8 - 2, 2, 2);
     if (dark > 0.05) { mctx.fillStyle = `rgba(10,16,50,${dark * 0.6})`; mctx.fillRect(0, 0, mm.width, mm.height); }
@@ -2623,7 +2457,6 @@
     if (!state.visited.length && !state.gems.length) {
       setTimeout(() => toast(isTouch ? t('hintTouch') : t('hintKey'), 4500), 500);
       setTimeout(() => { const n = npcs[0]; if (n) toast(t('npcWants', { name: esc(n.name) }), 3500); }, 5500);
-      setTimeout(() => toast(t('robotHint'), 4000), 10000);
     } else toast(t('welcomeBack'));
     Music.start();
     track('game_start', { lang: state.lang });
@@ -2660,5 +2493,5 @@
   requestAnimationFrame(frame);
 
   // untuk debugging di console
-  window.cvQuest = { state, player, gems, npcs, robot, cat, weather, SECTIONS, chat, setLang, get dark() { return dark; } };
+  window.cvQuest = { state, player, gems, npcs, cat, weather, SECTIONS, setLang, get dark() { return dark; } };
 })();

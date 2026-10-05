@@ -35,7 +35,7 @@
     const cv = window.CV;
     document.getElementById('name').textContent = cv.name;
     document.getElementById('role').textContent = cv.role;
-    document.getElementById('tag').textContent = '🎮 CV interaktif · 🤖 tanya Robot Claude · 🌐 ID / EN';
+    document.getElementById('tag').textContent = '🎮 CV interaktif · 💻 terminal SQL · 🌐 ID / EN';
     const topSkills = cv.skills.slice().sort((a, b) => b.level - a.level).slice(0, 5).map((s) => s.name);
     document.getElementById('chips').innerHTML = topSkills.map((s) => `<span class="chip">${s}</span>`).join('');
   </script>
