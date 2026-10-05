@@ -28,7 +28,8 @@
       "Halo! Saya Dinul Iman, lulusan S1 Teknologi Informasi Universitas Sumatera Utara yang berfokus pada " +
         "backend dan full-stack development. Sehari-hari saya bekerja dengan PHP, TypeScript, Node.js, dan " +
         "database relasional seperti PostgreSQL dan Oracle.",
-      "Pengalaman paling menonjol saya adalah membangun Payroll Management System PT PELNI yang melayani " +
+      "Pengalaman paling menonjol saya adalah mengerjakan Payroll Management System untuk PT PELNI sebagai " +
+        "developer di PT Solusi Integrasi Utama (vendor PELNI). Sistem ini melayani " +
         "sekitar 4.800–5.000 karyawan — mulai dari perhitungan PPh 21, BPJS, pensiun, koperasi, hingga " +
         "integrasi jurnal ke Oracle. Salah satu pencapaian favorit saya: memangkas proses payroll dari lebih " +
         "dari 10 menit menjadi kurang dari 1 menit lewat optimasi stored procedure.",
@@ -58,7 +59,7 @@
     experience: [
       {
         title: "Software Developer — Payroll Management System",
-        company: "PT PELNI",
+        company: "PT Solusi Integrasi Utama (vendor PT PELNI)",
         period: "",
         points: [
           "Mengembangkan sistem payroll berbasis PHP/CodeIgniter untuk ±4.800–5.000 karyawan.",
@@ -71,7 +72,7 @@
       },
       {
         title: "Backend Developer — Aplikasi Ticketing",
-        company: "PT PELNI",
+        company: "PT Solusi Integrasi Utama (vendor PT PELNI)",
         period: "",
         points: [
           "Mengembangkan backend aplikasi ticketing menggunakan NestJS dan PostgreSQL.",
@@ -110,10 +111,10 @@
     // Kategori yang sudah punya warna permata:
     // Backend, Frontend, Database, Data, DevOps, Domain
     skills: [
-      { name: "PHP & CodeIgniter", level: 5, category: "Backend", note: "Fondasi Payroll Management System PELNI." },
+      { name: "PHP & CodeIgniter", level: 5, category: "Backend", note: "Dipakai untuk Payroll Management System klien PT PELNI." },
       { name: "Laravel", level: 4, category: "Backend" },
       { name: "Yii2", level: 3, category: "Backend" },
-      { name: "Node.js & NestJS", level: 4, category: "Backend", note: "Backend aplikasi ticketing PELNI." },
+      { name: "Node.js & NestJS", level: 4, category: "Backend", note: "Backend aplikasi ticketing klien PT PELNI." },
       { name: "TypeScript", level: 4, category: "Backend" },
       { name: "Python & Django", level: 3, category: "Backend" },
       { name: "Go & Gin", level: 3, category: "Backend" },
@@ -133,11 +134,12 @@
 
     projects: [
       {
-        name: "Payroll Management System — PT PELNI",
+        name: "Payroll Management System untuk PT PELNI",
         desc:
           "Sistem payroll untuk ±4.800–5.000 karyawan: perhitungan PPh 21, BPJS, pensiun, koperasi, piutang, " +
           "dan proration; integrasi Oracle ↔ PostgreSQL; slip & laporan via JasperServer. " +
-          "Optimasi stored procedure memangkas proses dari >10 menit menjadi <1 menit.",
+          "Optimasi stored procedure memangkas proses dari >10 menit menjadi <1 menit. " +
+          "Dikerjakan sebagai developer di PT Solusi Integrasi Utama.",
         tech: ["PHP", "CodeIgniter", "PostgreSQL", "Oracle", "JasperServer", "Docker"],
         link: "",
       },
@@ -148,8 +150,8 @@
         link: "",
       },
       {
-        name: "Aplikasi Ticketing — PT PELNI",
-        desc: "Backend aplikasi ticketing, termasuk modul asuransi pengiriman (shipping insurance).",
+        name: "Aplikasi Ticketing untuk PT PELNI",
+        desc: "Backend aplikasi ticketing, termasuk modul asuransi pengiriman (shipping insurance). Dikerjakan di PT Solusi Integrasi Utama.",
         tech: ["NestJS", "TypeScript", "PostgreSQL"],
         link: "",
       },
@@ -222,7 +224,8 @@
       "Hi! I'm Dinul Iman, an Information Technology graduate from Universitas Sumatera Utara focused on " +
         "backend and full-stack development. Day to day I work with PHP, TypeScript, Node.js and relational " +
         "databases such as PostgreSQL and Oracle.",
-      "My most notable work is the Payroll Management System at PT PELNI, serving around 4,800–5,000 " +
+      "My most notable work is the Payroll Management System I worked on for PT PELNI as a developer at " +
+        "PT Solusi Integrasi Utama, a PELNI vendor. It serves around 4,800–5,000 " +
         "employees — from PPh 21 income tax, BPJS, pension and cooperative deductions to journal integration " +
         "with Oracle. A favourite achievement: cutting the payroll run from more than 10 minutes to under " +
         "1 minute by optimizing stored procedures.",
@@ -252,6 +255,7 @@
     experience: [
       {
         title: "Software Developer — Payroll Management System",
+        company: "PT Solusi Integrasi Utama (PT PELNI vendor)",
         points: [
           "Developed a PHP/CodeIgniter payroll system for ±4,800–5,000 employees.",
           "Built payroll calculation and processing: PPh 21 income tax, BPJS, pension, cooperative, receivables and salary proration.",
@@ -263,6 +267,7 @@
       },
       {
         title: "Backend Developer — Ticketing Application",
+        company: "PT Solusi Integrasi Utama (PT PELNI vendor)",
         points: [
           "Developed the backend of a ticketing application with NestJS and PostgreSQL.",
           "Built the shipping insurance module.",
@@ -295,9 +300,9 @@
 
     // hanya `note` yang diterjemahkan; urutan sama dengan daftar skill di atas
     skills: [
-      { note: "Foundation of PELNI's Payroll Management System." },
+      { note: "Used for the Payroll Management System (client: PT PELNI)." },
       {}, {},
-      { note: "Backend of the PELNI ticketing application." },
+      { note: "Backend of the ticketing application (client: PT PELNI)." },
       {}, {}, {}, {}, {},
       { note: "Payroll stored procedures & query optimization." },
       { note: "Data and financial journal integration." },
@@ -310,18 +315,20 @@
 
     projects: [
       {
+        name: "Payroll Management System for PT PELNI",
         desc:
           "Payroll system for ±4,800–5,000 employees: PPh 21 income tax, BPJS, pension, cooperative, receivables " +
           "and proration; Oracle ↔ PostgreSQL integration; payslips & reports via JasperServer. " +
-          "Stored procedure optimization cut the run from >10 minutes to <1 minute.",
+          "Stored procedure optimization cut the run from >10 minutes to <1 minute. " +
+          "Built as a developer at PT Solusi Integrasi Utama.",
       },
       {
         name: "Payroll ↔ Oracle Integration Pipeline",
         desc: "Data flow Oracle → PostgreSQL → payroll processing → journal back into Oracle, keeping HR and finance data in sync.",
       },
       {
-        name: "Ticketing Application — PT PELNI",
-        desc: "Backend for a ticketing application, including a shipping insurance module.",
+        name: "Ticketing Application for PT PELNI",
+        desc: "Backend for a ticketing application, including a shipping insurance module. Built at PT Solusi Integrasi Utama.",
       },
       {
         desc: "An interactive CV as a browser RPG — yes, the game you're playing right now!",
