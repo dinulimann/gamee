@@ -97,8 +97,9 @@ kbd {
   position: absolute; top: 12px; left: 12px;
   display: flex; gap: 10px; align-items: center;
   padding: 8px 14px 8px 8px;
-  max-width: calc(100vw - 290px);
+  max-width: calc(100vw - 340px);
 }
+.hud-left > div { min-width: 0; }
 .hud-name { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hud-role { color: var(--muted); font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hud-right { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; }
@@ -662,12 +663,13 @@ details.card[open] summary::after { transform: rotate(90deg); }
 /* ---------- responsive ---------- */
 @media (max-width: 640px) {
   .hud-left { padding: 6px 10px 6px 6px; max-width: calc(100vw - 210px); }
-  .hud-left .avatar { width: 32px; height: 32px; font-size: 10px; }
-  .icon-btn { width: 38px; height: 38px; font-size: 1rem; }
+  .hud-left .avatar { display: none; }
+  .hud-left { padding: 6px 10px; }
+  .icon-btn { width: 34px; height: 34px; font-size: 0.95rem; border-radius: 11px; }
   .hud-progress { top: 60px; font-size: 0.75rem; }
   #minimap { width: 132px; height: 96px; }
-  .hud-left { max-width: calc(100vw - 250px); }
-  .hud-right { gap: 4px; }
+  .hud-left { max-width: calc(100vw - 262px); }
+  .hud-right { gap: 3px; }
   #settings { top: 56px; }
   .msg { max-width: 92%; }
   .etl-node { flex: 1 1 0; min-width: 0; padding: 6px 2px; font-size: 0.6rem; line-height: 1.15; overflow-wrap: anywhere; }

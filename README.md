@@ -115,7 +115,8 @@ Untuk mencoba asisten AI secara lokal, pakai Vercel CLI: `npm install`, lalu `AN
 | Ganti bahasa | L | ID / EN |
 | Efek suara | M | ⚙️ |
 | Musik | N | ⚙️ |
-| Siang / malam / otomatis | T | ⚙️ |
+| Lompat ke malam / pagi | T | 🌙 / ☀️ |
+| Kunci waktu (otomatis / siang / malam) | – | ⚙️ |
 | Cuaca | R | ⚙️ |
 | Terminal rahasia | `` ` `` | ⚙️ → Terminal |
 | Bantuan | H | ❔ |

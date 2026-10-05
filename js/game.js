@@ -1416,7 +1416,7 @@
     else if (e.code === 'KeyC') openClassic();
     else if (e.code === 'KeyM') toggleSound();
     else if (e.code === 'KeyN') toggleMusic();
-    else if (e.code === 'KeyT') toggleTime();
+    else if (e.code === 'KeyT') toggleDayNight();
     else if (e.code === 'KeyR') toggleWeather();
     else if (e.code === 'KeyL') setLang(state.lang === 'id' ? 'en' : 'id');
     else if (e.code === 'KeyH') openHelp();
@@ -1531,6 +1531,7 @@
   $('#btnCV').onclick = () => { Sound.init(); openClassic(); };
   $('#btnHelp').onclick = () => { Sound.init(); openHelp(); };
   $('#btnSettings').onclick = () => { Sound.init(); ui.settings.classList.toggle('hidden'); updateSettingsUI(); };
+  $('#btnDayNight').onclick = toggleDayNight;
   $('#btnLang').onclick = () => { Sound.init(); setLang(state.lang === 'id' ? 'en' : 'id'); };
   $('#btnPrint').onclick = () => window.print();
   $('#btnStart').onclick = startGame;
@@ -1547,6 +1548,16 @@
     if (state.music) Music.start(); else Music.stop();
     updateSettingsUI();
     toast(t(state.music ? 'musicOn' : 'musicOff'), 1600);
+  }
+  // tombol 🌙/☀️: lompat ke malam atau pagi, lalu siklus waktu berjalan seperti biasa
+  function toggleDayNight() {
+    Sound.init();
+    const toNight = dark < NIGHT_MAX * 0.5;
+    state.timeMode = 'auto';
+    clock = toNight ? 0.92 : 0.27; // ±22.00 atau ±06.30
+    persist();
+    updateSettingsUI();
+    Sound.seq(toNight ? [784, 659, 523] : [523, 659, 784], 0.07, 'triangle', 0.045);
   }
   function toggleTime() {
     const order = ['auto', 'day', 'night'];
@@ -1808,6 +1819,7 @@
     const nightNow = dark > NIGHT_MAX * 0.5;
     if (nightNow !== isNight) {
       isNight = nightNow;
+      updateDayNightButton();
       if (state.timeMode === 'auto' && ui.title.classList.contains('hidden') && !anyOverlay()) toast(t(nightNow ? 'nightFalls' : 'dayBreaks'), 2600);
     }
     const mins = Math.floor((clock * 24 * 60) / 10) * 10;
@@ -1822,6 +1834,10 @@
   // lampu jalan di sudut alun-alun dan sepanjang jalan setapak
   const LAMPS = [[17, 11], [27, 11], [17, 19], [27, 19], [13, 23], [29, 23], [9, 9], [34, 9]]
     .map(([x, y]) => ({ x: x * TILE + 26, y: y * TILE + 26 }));
+  function updateDayNightButton() {
+    const btn = document.getElementById('btnDayNight');
+    if (btn) btn.textContent = isNight ? '☀️' : '🌙';
+  }
   const lampLit = () => clamp(dark / (NIGHT_MAX * 0.45), 0, 1);
 
   // kunang-kunang di sekitar pepohonan (hanya terlihat saat malam)
@@ -2612,6 +2628,7 @@
     });
     document.title = `${CV.name ? CV.name + ' — ' : ''}CV Quest`;
     applyI18n();
+    updateDayNightButton();
   }
 
   let lastT = performance.now();
