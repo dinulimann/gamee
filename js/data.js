@@ -60,7 +60,7 @@
       {
         title: "Programmer — Payroll Management System",
         company: "PT Solusi Integrasi Utama (vendor PT PELNI)",
-        period: "",
+        period: "Agu 2025 — Sekarang",
         points: [
           "Mengembangkan sistem payroll berbasis PHP/CodeIgniter untuk ±4.800–5.000 karyawan.",
           "Membangun perhitungan & pemrosesan payroll: PPh 21, BPJS, pensiun, koperasi, piutang, dan proration gaji.",
@@ -73,7 +73,7 @@
       {
         title: "Programmer — Aplikasi Ticketing",
         company: "PT Solusi Integrasi Utama (vendor PT PELNI)",
-        period: "",
+        period: "Agu 2025 — Sekarang",
         points: [
           "Mengembangkan backend aplikasi ticketing menggunakan NestJS dan PostgreSQL.",
           "Membangun modul asuransi pengiriman (shipping insurance).",
@@ -256,6 +256,7 @@
       {
         title: "Programmer — Payroll Management System",
         company: "PT Solusi Integrasi Utama (PT PELNI vendor)",
+        period: "Aug 2025 — Present",
         points: [
           "Developed a PHP/CodeIgniter payroll system for ±4,800–5,000 employees.",
           "Built payroll calculation and processing: PPh 21 income tax, BPJS, pension, cooperative, receivables and salary proration.",
@@ -268,6 +269,7 @@
       {
         title: "Programmer — Ticketing Application",
         company: "PT Solusi Integrasi Utama (PT PELNI vendor)",
+        period: "Aug 2025 — Present",
         points: [
           "Developed the backend of a ticketing application with NestJS and PostgreSQL.",
           "Built the shipping insurance module.",
