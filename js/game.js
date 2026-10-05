@@ -2222,21 +2222,35 @@
     }
   }
 
+  // Ikon & teks diukur terpisah: lebar emoji (mis. 🛠️ ✉️) sering diukur lebih kecil
+  // daripada saat digambar di Windows/Android, jadi ikon diberi slot tetap.
+  const SIGN_FONT = '800 11px Nunito, system-ui, sans-serif';
+  const EMOJI_FONT = '12px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", system-ui, sans-serif';
   function drawSign(b) {
     const x = (b.tx + BW / 2) * TILE, y = Math.min(b.ty * TILE - 30, buildingTop(b) - 4) + Math.sin(time * 2 + b.tx) * 2;
     const visited = state.visited.includes(b.id);
-    const txt = `${b.icon} ${b.name}${visited ? ' ✓' : ''}`;
-    ctx.font = '800 11px Nunito, system-ui, sans-serif';
-    const tw = ctx.measureText(txt).width + 16;
+    const label = `${b.name}${visited ? ' ✓' : ''}`;
+    ctx.font = EMOJI_FONT;
+    const iconW = Math.max(16, ctx.measureText(b.icon).width + 2);
+    ctx.font = SIGN_FONT;
+    const textW = ctx.measureText(label).width;
+    const pad = 9, gap = 5, tw = pad * 2 + iconW + gap + textW, left = x - tw / 2;
     ctx.fillStyle = visited ? 'rgba(20,60,30,0.85)' : 'rgba(17,21,36,0.85)';
-    rrect(ctx, x - tw / 2, y - 10, tw, 20, 8); ctx.fill();
+    rrect(ctx, left, y - 10, tw, 20, 8); ctx.fill();
     ctx.strokeStyle = visited ? '#80ed99' : b.color; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(txt, x, y + 1);
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center';
+    ctx.font = EMOJI_FONT;
+    ctx.fillStyle = '#fff';
+    ctx.fillText(b.icon, left + pad + iconW / 2, y + 1);
+    ctx.textAlign = 'left';
+    ctx.font = SIGN_FONT;
+    ctx.fillText(label, left + pad + iconW + gap, y + 1);
+    ctx.textAlign = 'center';
     if (!visited) {
       ctx.fillStyle = '#f2c14e';
       ctx.font = '900 14px Nunito, system-ui, sans-serif';
-      ctx.fillText('!', x + tw / 2 + 4, y - 8 + Math.sin(time * 5) * 2);
+      ctx.fillText('!', left + tw + 6, y - 8 + Math.sin(time * 5) * 2);
     }
   }
 
