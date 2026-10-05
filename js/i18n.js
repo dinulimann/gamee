@@ -49,7 +49,6 @@ window.I18N = {
       first_gem: ['Mata Jeli', 'Temukan permata skill pertama'],
       talker: ['Ramah Tamah', 'Ngobrol dengan semua warga'],
       wish: ['Penuh Harapan', 'Lempar koin ke air mancur'],
-      ai: ['Teman AI', 'Bertanya pada Robot Claude'],
       optimizer: ['Ahli Optimasi', 'Selesaikan simulasi payroll di bawah 1 menit'],
       hacker: ['Hacker Desa', 'Jalankan query SQL di terminal rahasia'],
       cat: ['Sahabat Kucing', 'Beri makan kucing desa'],
@@ -100,7 +99,6 @@ window.I18N = {
       <li>🚶 Berjalan: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> atau tombol panah — atau cukup <b>klik / ketuk</b> tempat tujuan di peta.</li>
       <li>🏠 Masuk bangunan: dekati pintunya lalu tekan <kbd>E</kbd> / <kbd>Spasi</kbd>, atau langsung klik bangunannya.</li>
       <li>💬 Ngobrol dengan warga: klik warganya atau tekan <kbd>E</kbd> saat berada di dekatnya.</li>
-      <li>🤖 Robot Claude di alun-alun bisa ditanya apa saja tentang CV ini.</li>
       <li>💎 Permata berkilau = skill. Jalan di atasnya untuk mengambilnya.</li>
       <li>🎮 Di Kantor Karier ada simulasi optimasi payroll, di Lab Proyek ada animasi pipeline data.</li>
       <li>📋 Papan tamu di alun-alun · 🐱 kucing desa suka ikan · 💻 tekan <kbd>&#96;</kbd> untuk terminal rahasia.</li>
@@ -132,12 +130,10 @@ window.I18N = {
     pEnter: '{v} — masuk {place}',
     pTalk: '{v} — ngobrol dengan {name}',
     pWish: '{v} — lempar koin ke air mancur 🪙',
-    pAsk: '{v} — tanya {name} 🤖',
     gemFound: '💎 Skill ditemukan: <b>{name}</b> {stars}',
     hintTouch: '👆 Ketuk peta untuk berjalan. Ketuk bangunan untuk masuk!',
     hintKey: '🚶 WASD / panah untuk berjalan, atau klik peta. Klik bangunan untuk masuk!',
     npcWants: '💬 {name} sepertinya ingin menyapamu.',
-    robotHint: '🤖 Ada Robot Claude di alun-alun — tanyakan apa saja tentang CV ini!',
     welcomeBack: '👋 Selamat datang kembali! Progresmu sudah dimuat.',
     noPath: 'Tidak bisa ke sana',
 
@@ -150,25 +146,6 @@ window.I18N = {
     musicOff: '🎵 Musik dimatikan',
     langToast: '🌐 Bahasa: Indonesia',
 
-    aiName: 'Robot Claude',
-    aiTitle: 'Robot Claude — Asisten AI',
-    aiIntro: 'Halo! Aku Robot Claude 🤖 Tanyakan apa saja tentang {name}: pengalaman, skill, proyek, atau posisi yang dicari.',
-    aiPlaceholder: 'Tulis pertanyaanmu…',
-    aiSend: 'Kirim',
-    aiThinking: 'Robot Claude sedang berpikir…',
-    aiYou: 'Kamu',
-    aiClear: '🧹 Mulai ulang',
-    aiDisclaimer: 'Jawaban dibuat oleh AI (Claude) berdasarkan isi CV ini dan bisa saja keliru. Pertanyaan dicatat tanpa identitas untuk memperbaiki CV ini.',
-    aiOffline: 'Asisten AI belum aktif di server ini. Sementara itu, semua informasi tetap bisa kamu baca di bangunan-bangunan desa 🏠',
-    aiError: 'Maaf, sinyalku sedang terganggu 📡 Coba tanya lagi sebentar lagi, ya.',
-    aiRate: 'Pelan-pelan ya 😅 Terlalu banyak pertanyaan dalam waktu singkat. Coba lagi sebentar lagi.',
-    aiRefusal: 'Maaf, aku tidak bisa menjawab itu. Coba tanya hal lain tentang CV ini, ya.',
-    aiSuggest: [
-      'Apa pengalaman Dinul dengan PostgreSQL?',
-      'Ceritakan proyek payroll PELNI',
-      'Posisi apa yang sedang dicari?',
-      'Apa saja skill backend-nya?',
-    ],
 
     loading: 'Memuat desa…',
     downloadPdf: '⬇️ Unduh CV (PDF)',
@@ -291,7 +268,6 @@ window.I18N = {
       first_gem: ['Sharp Eye', 'Find your first skill gem'],
       talker: ['Friendly Neighbor', 'Talk to every villager'],
       wish: ['Wishful Thinker', 'Toss a coin into the fountain'],
-      ai: ['AI Buddy', 'Ask Robot Claude a question'],
       optimizer: ['Optimizer', 'Finish the payroll simulation in under a minute'],
       hacker: ['Village Hacker', 'Run a SQL query in the secret terminal'],
       cat: ['Cat Whisperer', 'Feed the village cat'],
@@ -342,7 +318,6 @@ window.I18N = {
       <li>🚶 Walk: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or the arrow keys — or simply <b>click / tap</b> where you want to go.</li>
       <li>🏠 Enter a building: walk up to its door and press <kbd>E</kbd> / <kbd>Space</kbd>, or just click the building.</li>
       <li>💬 Talk to villagers: click them or press <kbd>E</kbd> when you're close.</li>
-      <li>🤖 Robot Claude in the plaza can answer any question about this CV.</li>
       <li>💎 Sparkling gems are skills. Walk over one to collect it.</li>
       <li>🎮 The Career Office has a payroll optimization simulation; the Project Lab has a data pipeline animation.</li>
       <li>📋 Guestbook in the plaza · 🐱 the village cat loves fish · 💻 press <kbd>&#96;</kbd> for the secret terminal.</li>
@@ -374,12 +349,10 @@ window.I18N = {
     pEnter: '{v} — enter {place}',
     pTalk: '{v} — talk to {name}',
     pWish: '{v} — toss a coin into the fountain 🪙',
-    pAsk: '{v} — ask {name} 🤖',
     gemFound: '💎 Skill found: <b>{name}</b> {stars}',
     hintTouch: '👆 Tap the map to walk. Tap a building to enter!',
     hintKey: '🚶 WASD / arrows to walk, or click the map. Click a building to enter!',
     npcWants: '💬 {name} seems to want to say hi.',
-    robotHint: '🤖 Robot Claude is in the plaza — ask it anything about this CV!',
     welcomeBack: '👋 Welcome back! Your progress has been loaded.',
     noPath: "Can't get there",
 
@@ -392,25 +365,6 @@ window.I18N = {
     musicOff: '🎵 Music off',
     langToast: '🌐 Language: English',
 
-    aiName: 'Robot Claude',
-    aiTitle: 'Robot Claude — AI Assistant',
-    aiIntro: "Hi! I'm Robot Claude 🤖 Ask me anything about {name}: experience, skills, projects or target roles.",
-    aiPlaceholder: 'Type your question…',
-    aiSend: 'Send',
-    aiThinking: 'Robot Claude is thinking…',
-    aiYou: 'You',
-    aiClear: '🧹 Reset chat',
-    aiDisclaimer: 'Answers are generated by AI (Claude) from this CV and may contain mistakes. Questions are logged anonymously to improve this CV.',
-    aiOffline: "The AI assistant isn't enabled on this server yet. Meanwhile, everything is still in the village buildings 🏠",
-    aiError: 'Sorry, my signal is a bit weak 📡 Please ask again in a moment.',
-    aiRate: "Easy there 😅 That's a lot of questions in a short time. Please try again shortly.",
-    aiRefusal: "Sorry, I can't answer that. Try asking something else about this CV.",
-    aiSuggest: [
-      "What is Dinul's experience with PostgreSQL?",
-      'Tell me about the PELNI payroll project',
-      'What roles is Dinul looking for?',
-      'What are the backend skills?',
-    ],
     loading: 'Loading the village…',
     downloadPdf: '⬇️ Download CV (PDF)',
     tTerminal: 'Terminal (` key)',

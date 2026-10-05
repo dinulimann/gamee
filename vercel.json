@@ -1,8 +1,7 @@
 {
   "functions": {
-    "api/ask.js": {
-      "maxDuration": 60,
-      "includeFiles": "js/data.js"
+    "api/guestbook.js": {
+      "maxDuration": 10
     }
   }
 }
