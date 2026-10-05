@@ -162,9 +162,9 @@
     ],
 
     contact: {
-      email: "",
+      email: "dinulimankappa@proton.me",
       github: "https://github.com/dinulimann",
-      linkedin: "",
+      linkedin: "https://www.linkedin.com/in/dinul-iman-818034178/",
       website: "",
     },
 
