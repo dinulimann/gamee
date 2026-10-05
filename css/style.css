@@ -589,6 +589,59 @@ details.card[open] summary::after { transform: rotate(90deg); }
 .term-line label { color: #80ed99; font-size: 0.82rem; white-space: nowrap; }
 .term-line input { flex: 1; min-width: 0; background: transparent; border: none; color: #fff; font: inherit; font-size: 0.9rem; outline: none; }
 
+/* ---------- memancing ---------- */
+.fish-scene {
+  position: relative;
+  height: 130px;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  background:
+    repeating-linear-gradient(170deg, rgba(255, 255, 255, 0.08) 0 6px, transparent 6px 26px),
+    linear-gradient(180deg, #4aa3df 0%, #2a6fb0 100%);
+  background-size: 200% 100%, 100% 100%;
+  animation: waves 6s linear infinite;
+}
+@keyframes waves { to { background-position: 200% 0, 0 0; } }
+.fs-bobber { position: absolute; left: 50%; top: 46px; width: 22px; height: 30px; margin-left: -11px; }
+.fs-bobber i {
+  position: absolute; inset: 0;
+  border-radius: 50% 50% 45% 45%;
+  background: linear-gradient(180deg, #ff4d4d 0 50%, #fff 50% 100%);
+  border: 2px solid #3a1f1f;
+  box-shadow: 0 6px 0 -2px rgba(0, 0, 0, 0.2);
+}
+.fs-bobber::before { content: ""; position: absolute; left: 50%; bottom: 100%; width: 1px; height: 60px; background: rgba(255, 255, 255, 0.7); }
+.phase-idle .fs-bobber, .phase-done .fs-bobber { opacity: 0; }
+.phase-wait .fs-bobber i { animation: bob 1.6s ease-in-out infinite; }
+.phase-bite .fs-bobber i { animation: dip 0.18s ease-in-out infinite alternate; }
+.phase-reel .fs-bobber i { animation: dip 0.35s ease-in-out infinite alternate; }
+@keyframes bob { 50% { transform: translateY(4px) rotate(4deg); } }
+@keyframes dip { to { transform: translateY(12px) rotate(-12deg); } }
+.phase-bite { box-shadow: inset 0 0 0 3px #f2c14e; }
+.fs-msg {
+  position: absolute; left: 10px; right: 10px; bottom: 8px;
+  text-align: center; font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+.phase-idle .fs-msg { top: 0; bottom: 0; display: grid; place-items: center; font-size: 1.05rem; }
+.fish-scene.phase-done { height: auto; min-height: 130px; display: grid; place-items: center; }
+.phase-done .fs-msg { position: static; padding: 20px 14px; font-size: 1.05rem; line-height: 1.6; }
+.fish-ic { font-size: 1.5em; vertical-align: middle; }
+.fish-ic.gold { filter: sepia(1) saturate(5) hue-rotate(5deg) brightness(1.15); }
+.reel { margin-bottom: 12px; }
+.reel-bar { position: relative; height: 26px; border-radius: 99px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.15); overflow: hidden; }
+.reel-bar.shake { animation: shake 0.3s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.reel-zone { position: absolute; top: 0; bottom: 0; background: linear-gradient(90deg, #4cd97b, #80ed99); opacity: 0.85; }
+.reel-needle { position: absolute; top: -2px; bottom: -2px; width: 4px; margin-left: -2px; background: #fff; box-shadow: 0 0 6px #fff; border-radius: 2px; }
+.reel-lives { text-align: center; margin-top: 6px; letter-spacing: 2px; }
+.fish-btn { width: 100%; justify-content: center; }
+.fish-meta { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 10px; font-size: 0.85rem; }
+.fish-dex { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.fd { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); font-size: 0.8rem; font-weight: 700; color: var(--muted); }
+.fd.on { background: rgba(47, 128, 194, 0.2); color: var(--text); }
+
 /* ---------- animations ---------- */
 @keyframes pop { from { transform: scale(0.92); opacity: 0; } }
 #prompt, #dialog { animation-name: popc; }

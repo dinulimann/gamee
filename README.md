@@ -15,12 +15,13 @@ CV interaktif dalam bentuk **game RPG di browser**. Pengunjung berjalan-jalan di
 - 💻 **Terminal rahasia** (tombol `` ` ``): jalankan SQL mini seperti `SELECT * FROM skills WHERE level >= 4;`
 - 📋 **Papan tamu**: pengunjung bisa menempel pesan singkat (dengan filter tautan, spam judi, dan kata kasar)
 - 🌧️ **Cuaca**: hujan turun sesekali, lengkap dengan suara rintik
-- 🐱 **Kucing desa** bernama Kopi yang mengikutimu setelah diberi makan
+- 🎣 **Memancing di dermaga** (pantai barat): lempar kail, sambar tepat waktu, lalu tarik di zona hijau. 8 jenis tangkapan termasuk Ikan Kerapu Emas yang lebih sering muncul saat malam, lengkap dengan Buku Ikan
+- 🐱 **Kucing desa** bernama Kopi yang mengikutimu setelah diberi ikan hasil pancingan
 - ⬇️ **Unduh CV (PDF)** dalam bahasa Indonesia atau Inggris
 - 🔗 **Preview link** (gambar + deskripsi) saat dibagikan di WhatsApp, LinkedIn, dll.
 - 📊 **Vercel Web Analytics** untuk melihat jumlah pengunjung
 - ⛲ Air mancur untuk "melempar koin" (easter egg)
-- 📜 Panel misi + 🏆 10 pencapaian + layar akhir dengan confetti
+- 📜 Panel misi + 🏆 12 pencapaian + layar akhir dengan confetti
 - 🗺️ Minimap yang bisa diklik untuk berjalan cepat
 - 🖱️ Klik/ketuk untuk berjalan otomatis (pathfinding A*), atau pakai WASD/panah
 - 📱 Bisa dimainkan di HP (kontrol sentuh + tombol aksi)
@@ -68,7 +69,8 @@ Semua gambar ada di folder **`assets/`** (PNG transparan): tile tanah, pohon, ai
 - Sprite warga dipilih lewat field `sprite` di `js/data.js`.
 - Ganti gambar cukup dengan menimpa file bernama sama. Kalau sebuah file tidak ada, game otomatis memakai gambar bawaan (digambar kode).
 - Kucing (`cat.png`, strip 4 frame seperti karakter), lampu jalan (`lamp.png` menyala dan `lamp-off.png` mati, berganti halus mengikuti gelapnya hari), dan papan tamu (`guestbook.png`) memakai sprite. Kalau filenya tidak ada, ketiganya digambar oleh kode.
-- Sprite untuk fitur berikutnya sudah tersedia tetapi belum dipakai: `pier.png`, `boat.png`, `npc-nelayan.png`, `fish.png`, `building-certs.png`, `flag-merah-putih.png`, `lantern.png`, `bench.png`, `signpost.png`.
+- Dermaga (`pier.png`), perahu (`boat.png`), Pak Nelayan (`npc-nelayan.png`), bangku (`bench.png`), dan papan penunjuk (`signpost.png`) dipakai di area memancing. Latar air biru pada `pier.png`/`boat.png` dibuat transparan otomatis saat dimuat.
+- Sprite yang belum dipakai: `fish.png`, `building-certs.png`, `flag-merah-putih.png`, `lantern.png`.
 
 ## Menjalankan
 
