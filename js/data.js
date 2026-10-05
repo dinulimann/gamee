@@ -209,6 +209,19 @@
           "Psst… ada terminal rahasia. Tekan tombol ` di keyboard, atau buka lewat menu ⚙️ 💻",
         ],
       },
+      {
+        name: "Pak Nelayan",
+        sprite: "npc-nelayan",
+        shirt: "#4a6fa5",
+        hair: "#3b2416",
+        home: [4, 14],
+        lines: [
+          "Mau mancing? Dermaga ada di pantai barat, tepat di belakangku 🎣",
+          "Lempar kail, tunggu pelampung bergoyang, lalu tekan secepatnya saat ikan menyambar!",
+          "Kata orang, Ikan Kerapu Emas lebih sering muncul saat malam 🌙",
+          "Kucing Kopi itu doyan ikan. Bawakan satu, dia pasti jadi temanmu.",
+        ],
+      },
     ],
   };
 
@@ -361,6 +374,15 @@
           "PostgreSQL, Oracle, NestJS, Go... collect them all for the Skill Workshop!",
           "In a hurry? Press the 📄 button in the top-right corner for the plain CV.",
           "Psst… there's a secret terminal. Press the ` key, or open it from the ⚙️ menu 💻",
+        ],
+      },
+      {
+        name: "Fisherman",
+        lines: [
+          "Fancy some fishing? The pier is on the west coast, right behind me 🎣",
+          "Cast your line, wait for the bobber to wiggle, then press quickly when a fish bites!",
+          "They say the Golden Grouper shows up more often at night 🌙",
+          "Kopi the cat loves fish. Bring one and you'll have a friend for life.",
         ],
       },
     ],

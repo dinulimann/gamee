@@ -82,6 +82,7 @@
       'gem-backend', 'gem-frontend', 'gem-database', 'gem-data', 'gem-devops', 'gem-domain',
       'avatar', 'logo', 'title-bg',
       'cat', 'lamp', 'lamp-off', 'guestbook',
+      'pier', 'boat', 'npc-nelayan', 'fish', 'bench', 'signpost',
     ];
     let pending = names.length;
     const done = () => {
@@ -111,6 +112,8 @@
     timeMode: saved.timeMode || 'auto', // auto | day | night
     weather: saved.weather || 'auto', // auto | clear | rain
     catFed: !!saved.catFed,
+    fish: saved.fish || 0, // ikan di keranjang
+    fishDex: saved.fishDex || [], // jenis yang pernah ditangkap
     lang: I18N[saved.lang] ? saved.lang : (/^id\b|^ms\b/i.test(navigator.language || '') ? 'id' : 'en'),
   };
   const persist = () => store.save(state);
@@ -195,6 +198,9 @@
   const BOARD = { tx: 19, ty: 12, x: 19 * TILE + 16, y: 12 * TILE + 28 };
   solid[BOARD.ty][BOARD.tx] = true;
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (tiles[y][x] === WATER) solid[y][x] = true;
+  // dermaga di pantai barat: petak air di baris 15 (kolom 0–2) bisa dipijak
+  const PIER = { ty: 15, x0: 0, x1: 2 };
+  for (let x = PIER.x0; x <= PIER.x1; x++) solid[PIER.ty][x] = false;
 
   // pohon & dekorasi
   const rng = mulberry32(20241);
@@ -443,6 +449,8 @@
     { id: 'hacker', icon: '💻' },
     { id: 'cat', icon: '🐱' },
     { id: 'guest', icon: '📌' },
+    { id: 'fisher', icon: '🎣' },
+    { id: 'legend', icon: '🐠' },
     { id: 'all_sections', icon: '🗺️' },
     { id: 'all_gems', icon: '👑' },
   ];
@@ -1105,9 +1113,13 @@
   }
   function interactCat() {
     Sound.meow();
+    if (!state.catFed && state.fish < 1) {
+      toast(t('catWantsFish', { name: t('catName') }), 3600);
+      return;
+    }
     hearts(cat.x, cat.y - 18);
     if (!state.catFed) {
-      state.catFed = true; persist();
+      state.catFed = true; state.fish--; persist();
       toast(t('catFed', { name: t('catName') }), 3200);
       unlock('cat');
       track('cat_fed');
@@ -1162,6 +1174,193 @@
     ctx.fillStyle = '#ff8fa3'; ctx.fillRect(12, -11.5, 1.4, 1.2);
     ctx.restore();
   }
+
+  // ---------------------------------------------------------------- dermaga & memancing
+  const FISH_TYPES = [
+    { id: 'teri', icon: '🐟', w: 34, need: 1, zone: 0.32, speed: 1.0, cm: [6, 12] },
+    { id: 'kembung', icon: '🐟', w: 26, need: 2, zone: 0.28, speed: 1.15, cm: [18, 30] },
+    { id: 'kakap', icon: '🐠', w: 13, need: 2, zone: 0.22, speed: 1.4, cm: [30, 60] },
+    { id: 'buntal', icon: '🐡', w: 9, need: 2, zone: 0.2, speed: 1.6, cm: [15, 35] },
+    { id: 'tuna', icon: '🐟', w: 5, need: 3, zone: 0.17, speed: 1.85, cm: [60, 140], rare: true },
+    { id: 'boot', icon: '👢', w: 8, need: 1, zone: 0.4, speed: 0.8, junk: true },
+    { id: 'bug', icon: '🐛', w: 4, need: 1, zone: 0.3, speed: 1.2, junk: true },
+    { id: 'kerapu', icon: '🐠', w: 1.2, need: 3, zone: 0.12, speed: 2.2, cm: [80, 120], rare: true, legend: true },
+  ];
+  const fishName = (f) => t('fishNames.' + f.id);
+  const fishIcon = (f) => `<span class="fish-ic${f.legend ? ' gold' : ''}">${f.icon}</span>`;
+  const fishing = { phase: 'idle', timer: 0, fish: null, hits: 0, lives: 3, zone: 0.5, t: 0, speed: 1, msg: '' };
+
+  function openFishing() {
+    player.path = null; player.target = null;
+    Object.assign(fishing, { phase: 'idle', msg: t('fishIntro') });
+    openModal({ title: t('fishTitle'), icon: '🎣', color: '#2f80c2', kind: 'fishing', html: '', onClose: () => { fishing.phase = 'idle'; } });
+    renderFishing();
+  }
+  function pickFish() {
+    const night = dark > NIGHT_MAX * 0.5;
+    const weights = FISH_TYPES.map((f) => f.w * (night && f.legend ? 4 : night && f.rare ? 2 : 1));
+    let r = Math.random() * weights.reduce((a, b) => a + b, 0);
+    for (let i = 0; i < FISH_TYPES.length; i++) { r -= weights[i]; if (r <= 0) return FISH_TYPES[i]; }
+    return FISH_TYPES[0];
+  }
+  function newZone() {
+    const w = fishing.fish.zone;
+    fishing.zone = w / 2 + Math.random() * (1 - w);
+  }
+  const needlePos = () => Math.abs(((fishing.t * 0.9 * fishing.speed) % 2) - 1); // gelombang segitiga 0..1..0
+
+  function fishAction() {
+    const f = fishing;
+    if (f.phase === 'idle' || f.phase === 'done') {
+      f.phase = 'wait';
+      f.timer = (1.4 + Math.random() * 2.4) * (weather.rain > 0.3 ? 0.6 : 1);
+      f.msg = t('fishWaiting');
+      Sound.seq([392, 330], 0.06, 'triangle', 0.04);
+    } else if (f.phase === 'wait') {
+      f.phase = 'idle'; f.msg = t('fishEarly'); Sound.nope();
+    } else if (f.phase === 'bite') {
+      f.fish = pickFish();
+      Object.assign(f, { phase: 'reel', hits: 0, lives: 3, t: Math.random() * 2, speed: f.fish.speed });
+      newZone();
+      f.msg = t('fishReel', { h: 0, n: f.fish.need });
+      Sound.tone(880, 0.06, 'square', 0.04);
+    } else if (f.phase === 'reel') {
+      const pos = needlePos(), half = f.fish.zone / 2;
+      if (Math.abs(pos - f.zone) <= half + 0.025) { // sedikit toleransi supaya terasa adil
+        f.hits++;
+        Sound.tone(660 + f.hits * 160, 0.07, 'triangle', 0.05);
+        if (f.hits >= f.fish.need) return landFish();
+        f.speed *= 1.12; newZone();
+        f.msg = t('fishReel', { h: f.hits, n: f.fish.need });
+      } else {
+        f.lives--;
+        Sound.tone(180, 0.12, 'sawtooth', 0.04);
+        const bar = $('#reelBar');
+        if (bar) { bar.classList.remove('shake'); void bar.offsetWidth; bar.classList.add('shake'); }
+        if (f.lives <= 0) { f.phase = 'idle'; f.msg = t('fishSnap'); Sound.nope(); }
+      }
+    }
+    renderFishing();
+  }
+  function landFish() {
+    const f = fishing, fish = f.fish;
+    const isNew = !state.fishDex.includes(fish.id);
+    if (isNew) state.fishDex.push(fish.id);
+    let line;
+    if (fish.junk) line = t('fishJunk', { fish: esc(fishName(fish)) });
+    else {
+      state.fish++;
+      const cm = Math.round(fish.cm[0] + Math.random() * (fish.cm[1] - fish.cm[0]));
+      line = t('fishCaught', { fish: esc(fishName(fish)), size: t('fishCm', { n: cm }) });
+      unlock('fisher');
+    }
+    persist();
+    f.phase = 'done';
+    f.msg = `${fishIcon(fish)} ${line}${isNew ? `<br><small>${t('fishNew')}</small>` : ''}`;
+    if (fish.legend) { Sound.win(); confetti(90); unlock('legend'); }
+    else if (fish.junk) Sound.seq([330, 262], 0.08, 'triangle', 0.04);
+    else Sound.gem();
+    track('fish_caught', { id: fish.id });
+    renderFishing();
+  }
+  function updateFishing(dt) {
+    if (modalKind !== 'fishing') return;
+    const f = fishing;
+    if (f.phase === 'wait') {
+      f.timer -= dt;
+      if (f.timer <= 0) {
+        f.phase = 'bite'; f.timer = 0.9; f.msg = t('fishBite');
+        Sound.seq([1046, 1318], 0.05, 'square', 0.05);
+        renderFishing();
+      }
+    } else if (f.phase === 'bite') {
+      f.timer -= dt;
+      if (f.timer <= 0) { f.phase = 'idle'; f.msg = t('fishMissed'); Sound.nope(); renderFishing(); }
+    } else if (f.phase === 'reel') {
+      f.t += dt;
+      const n = document.getElementById('reelNeedle');
+      if (n) n.style.left = `${needlePos() * 100}%`;
+    }
+  }
+  function renderFishing() {
+    if (modalKind !== 'fishing') return;
+    const f = fishing;
+    const label = { idle: t('fishCast'), done: t('fishAgain'), wait: t('fishHook'), bite: t('fishHook'), reel: t('fishReelBtn') }[f.phase];
+    const reel = f.phase === 'reel' ? `
+      <div class="reel">
+        <div class="reel-bar" id="reelBar">
+          <i class="reel-zone" style="left:${(f.zone - f.fish.zone / 2) * 100}%;width:${f.fish.zone * 100}%"></i>
+          <i class="reel-needle" id="reelNeedle" style="left:${needlePos() * 100}%"></i>
+        </div>
+        <div class="reel-lives">${'❤️'.repeat(f.lives)}${'🤍'.repeat(3 - f.lives)}</div>
+      </div>` : '';
+    const tips = [dark > NIGHT_MAX * 0.5 ? t('fishNight') : '', weather.rain > 0.3 ? t('fishRain') : ''].filter(Boolean).join(' ');
+    ui.modalBody.innerHTML = `
+      <div class="fish-scene phase-${f.phase}">
+        <div class="fs-bobber"><i></i></div>
+        <div class="fs-msg"><span>${f.phase === 'idle' && f.msg === t('fishIntro') ? '🌊' : f.msg}</span></div>
+      </div>
+      ${f.phase === 'idle' && f.msg === t('fishIntro') ? `<p>${t('fishIntro')}</p>` : ''}
+      ${reel}
+      <button class="btn big fish-btn" type="button" data-action="fish">${label}</button>
+      <div class="fish-meta"><b>${t('fishBag', { n: state.fish })}</b><span class="muted">${tips || (isTouch ? '' : t('fishKeyHint'))}</span></div>
+      <h4>${t('fishDex', { n: state.fishDex.length, t: FISH_TYPES.length })}</h4>
+      <div class="fish-dex">${FISH_TYPES.map((x) => state.fishDex.includes(x.id)
+        ? `<div class="fd on">${fishIcon(x)}<span>${esc(fishName(x))}</span></div>`
+        : '<div class="fd"><span class="fish-ic">❔</span><span>???</span></div>').join('')}</div>`;
+  }
+
+  // gambar dermaga & perahu punya latar air: bagian biru dibuat transparan saat dimuat
+  const cutCache = {};
+  function cutWater(name) {
+    if (cutCache[name]) return cutCache[name];
+    const im = sprite(name);
+    if (!im) return null;
+    const c = document.createElement('canvas');
+    c.width = im.naturalWidth; c.height = im.naturalHeight;
+    const g = c.getContext('2d');
+    g.drawImage(im, 0, 0);
+    try {
+      const d = g.getImageData(0, 0, c.width, c.height), px = d.data;
+      for (let i = 0; i < px.length; i += 4) {
+        const r = px[i], gr = px[i + 1], b = px[i + 2];
+        if (b > 110 && b > r + 45 && b > gr - 10) px[i + 3] = 0;
+      }
+      g.putImageData(d, 0, 0);
+    } catch (e) { /* file:// tidak mengizinkan membaca piksel; pakai gambar apa adanya */ }
+    cutCache[name] = c;
+    return c;
+  }
+  const PIER_X = PIER.x0 * TILE - 4, PIER_W = (PIER.x1 - PIER.x0 + 1) * TILE + 10;
+  function drawPier() {
+    const im = cutWater('pier'), top = PIER.ty * TILE - 8;
+    if (im) { ctx.drawImage(im, PIER_X, top, PIER_W, (PIER_W * im.height) / im.width); return; }
+    ctx.fillStyle = '#6b4226';
+    for (let k = 0; k < 4; k++) ctx.fillRect(PIER_X + 6 + k * 30, top + 30, 5, 22);
+    ctx.fillStyle = '#a7743f'; ctx.fillRect(PIER_X, top + 6, PIER_W, 30);
+    ctx.strokeStyle = '#7a4f28'; ctx.lineWidth = 1;
+    for (let k = 1; k < 10; k++) { ctx.beginPath(); ctx.moveTo(PIER_X + k * 10.4, top + 6); ctx.lineTo(PIER_X + k * 10.4, top + 36); ctx.stroke(); }
+  }
+  function drawBoat() {
+    const im = cutWater('boat');
+    if (!im) return;
+    const w = 62, h = (w * im.height) / im.width, bob = Math.sin(time * 1.6) * 1.5;
+    ctx.save(); ctx.translate(6 + w / 2, 17 * TILE + 8 + bob); ctx.rotate(Math.sin(time * 1.2) * 0.03);
+    ctx.drawImage(im, -w / 2, -h / 2, w, h);
+    ctx.restore();
+  }
+  const DECOR = [
+    { name: 'bench', x: 3 * TILE + 18, y: 17 * TILE + 26, w: 40 },
+    { name: 'signpost', x: 3 * TILE + 14, y: 12 * TILE + 26, w: 24 },
+  ];
+  function drawDecor(d) {
+    const im = sprite(d.name);
+    if (!im) return;
+    const h = (d.w * im.naturalHeight) / im.naturalWidth;
+    ctx.drawImage(im, d.x - d.w / 2, d.y - h, d.w, h);
+  }
+  const onPier = () => { const tt = tileOf(player); return tt.y === PIER.ty && tt.x >= PIER.x0 && tt.x <= PIER.x1; };
+  const hitPier = (w) => w.x < PIER_X + PIER_W && w.y > PIER.ty * TILE - 8 && w.y < PIER.ty * TILE + 34;
 
   // ---------------------------------------------------------------- papan tamu
   const gb = { entries: null, status: 'idle', note: '', sending: false };
@@ -1346,6 +1545,11 @@
       else if (!ui.classic.classList.contains('hidden')) closeClassic();
       return;
     }
+    if (modalKind === 'fishing' && !ui.modal.classList.contains('hidden') && (e.code === 'Space' || e.code === 'KeyE' || e.code === 'Enter')) {
+      e.preventDefault();
+      if (!e.repeat) fishAction();
+      return;
+    }
     if (anyOverlay()) return;
     if (KEYMAP[e.code]) { keys[KEYMAP[e.code]] = true; e.preventDefault(); return; }
     if (e.repeat) return;
@@ -1388,6 +1592,7 @@
     if (dlg.active) { advanceDialog(); return; }
     const w = screenToWorld(e.clientX, e.clientY);
     if (hitCat(w)) return goToCat();
+    if (hitPier(w)) return goToPier();
     if (hitBoard(w)) return goToBoard();
     const b = hitBuilding(w);
     if (b) return goToBuilding(b);
@@ -1450,6 +1655,7 @@
       else if (a === 'pg-again') { pg.sel.clear(); pg.result = null; renderPayroll(); }
       else if (a === 'etl') etlSelect(+t2.dataset.i);
       else if (a === 'gb-reload') loadGuestbook();
+      else if (a === 'fish') { t2.blur(); fishAction(); }
     }
   });
   document.addEventListener('click', (e) => { if (e.target.closest('[data-pdf]')) track('pdf_download', { lang: state.lang }); });
@@ -1558,6 +1764,10 @@
       } else if (modalKind === 'payroll') {
         ui.modalTitle.textContent = t('pgTitle');
         if (!pg.running) renderPayroll();
+      } else if (modalKind === 'fishing') {
+        ui.modalTitle.textContent = t('fishTitle');
+        if (fishing.phase === 'idle') fishing.msg = t('fishIntro');
+        renderFishing();
       } else if (modalKind === 'guestbook') {
         ui.modalTitle.textContent = t('gbName');
         renderGuestbookShell(); renderGbList();
@@ -1617,6 +1827,10 @@
     const t = tileOf(n);
     walkTo(t.x, t.y + 1, { type: 'npc', n, tries: 3 });
   }
+  function goToPier() {
+    if (onPier()) return openFishing();
+    walkTo(PIER.x0 + 1, PIER.ty, { type: 'pier' });
+  }
   function goToCat() {
     if (Math.hypot(player.x - cat.x, player.y - cat.y) < 40) return interactCat();
     const ct = tileOf(cat);
@@ -1637,6 +1851,7 @@
     if (t.type === 'building') openSection(t.b);
     else if (t.type === 'fountain') { player.dir = 'up'; makeWish(); }
     else if (t.type === 'board') { player.dir = 'up'; openGuestbook(); }
+    else if (t.type === 'pier') { player.dir = 'left'; openFishing(); }
     else if (t.type === 'cat') {
       if (Math.hypot(player.x - cat.x, player.y - cat.y) < 52) interactCat();
       else if (t.tries > 0) { const ct = tileOf(cat); walkTo(ct.x, ct.y, { ...t, tries: t.tries - 1 }); }
@@ -1659,6 +1874,7 @@
       const d = Math.hypot(player.x - n.x, player.y - n.y);
       if (d < 44 && d < bd) { bd = d; best = { type: 'npc', n }; }
     }
+    if (onPier()) { bd = 0; best = { type: 'pier' }; }
     const cd = Math.hypot(player.x - cat.x, player.y - cat.y);
     if (cd < 36 && cd < bd) { bd = cd; best = { type: 'cat' }; }
     const gd = Math.hypot(player.x - BOARD.x, player.y - BOARD.y);
@@ -1673,6 +1889,7 @@
     else if (it.type === 'npc') startDialog(it.n);
     else if (it.type === 'fountain') makeWish();
     else if (it.type === 'cat') interactCat();
+    else if (it.type === 'pier') openFishing();
     else if (it.type === 'board') openGuestbook();
   }
   let lastPromptKey = '';
@@ -1683,6 +1900,7 @@
       const v = isTouch ? t('verbTouch') : t('verbKey');
       if (current.type === 'building') { key = 'b' + current.b.id; text = t('pEnter', { v, place: `${current.b.icon} ${current.b.name}` }); }
       else if (current.type === 'npc') { key = 'n' + current.n.i; text = t('pTalk', { v, name: current.n.name }); }
+      else if (current.type === 'pier') { key = 'p'; text = t('pFish', { v }); }
       else if (current.type === 'cat') { key = 'c' + state.catFed; text = t(state.catFed ? 'pPet' : 'pFeed', { v, name: t('catName') }); }
       else if (current.type === 'board') { key = 'g'; text = t('pGuest', { v }); }
       else { key = 'f'; text = t('pWish', { v }); }
@@ -1751,7 +1969,7 @@
   }
 
   // lampu jalan di sudut alun-alun dan sepanjang jalan setapak
-  const LAMPS = [[17, 11], [27, 11], [17, 19], [27, 19], [13, 23], [29, 23], [9, 9], [34, 9]]
+  const LAMPS = [[17, 11], [27, 11], [17, 19], [27, 19], [13, 23], [29, 23], [9, 9], [34, 9], [3, 13]]
     .map(([x, y]) => ({ x: x * TILE + 26, y: y * TILE + 26 }));
   function updateDayNightButton() {
     const btn = document.getElementById('btnDayNight');
@@ -1782,6 +2000,7 @@
     updateFlies(dt);
     updateEtl(dt);
     updateCat(dt);
+    updateFishing(dt);
     if (lights.flash) { lights.flash.t -= dt; if (lights.flash.t <= 0) lights.flash = null; }
     updateParticles(dt);
     updateDialog(dt);
@@ -2412,6 +2631,7 @@
       for (const p of player.path) { ctx.beginPath(); ctx.arc(p.x * TILE + 16, p.y * TILE + 22, 2, 0, Math.PI * 2); ctx.fill(); }
     }
 
+    if (visible(1, PIER.ty, 4)) { drawBoat(); drawPier(); }
     for (const g of gems) if (!gemCollected(g.i) && visible(g.x / TILE, g.y / TILE)) drawGem(g);
 
     // entitas diurutkan berdasarkan y
@@ -2421,6 +2641,7 @@
     ents.push({ y: FOUNTAIN.y + 30, d: drawFountain });
     for (const L of LAMPS) if (visible(L.x / TILE, L.y / TILE)) ents.push({ y: L.y, d: () => drawLamp(L) });
     ents.push({ y: BOARD.y, d: drawBoard });
+    for (const d of DECOR) if (visible(d.x / TILE, d.y / TILE)) ents.push({ y: d.y, d: () => drawDecor(d) });
     if (visible(cat.x / TILE, cat.y / TILE)) ents.push({ y: cat.y, d: drawCat });
     for (const n of npcs) ents.push({ y: n.y, d: () => drawCharacter(n) });
     ents.push({ y: player.y + 0.1, d: () => drawCharacter(player) });
@@ -2470,6 +2691,7 @@
     mctx.fillStyle = '#fff';
     for (const n of npcs) mctx.fillRect(n.x / 8 - 1, n.y / 8 - 3, 2, 3);
     mctx.fillStyle = '#a0673c'; mctx.fillRect(BOARD.x / 8 - 2, BOARD.y / 8 - 4, 4, 3);
+    mctx.fillStyle = '#8b5a2b'; mctx.fillRect(0, PIER.ty * 4, (PIER.x1 + 1) * 4, 3);
     mctx.fillStyle = '#f2a65a'; mctx.fillRect(cat.x / 8 - 1, cat.y / 8 - 2, 2, 2);
     if (dark > 0.05) { mctx.fillStyle = `rgba(10,16,50,${dark * 0.6})`; mctx.fillRect(0, 0, mm.width, mm.height); }
     mctx.strokeStyle = 'rgba(255,255,255,0.7)'; mctx.lineWidth = 1;
@@ -2527,5 +2749,5 @@
   requestAnimationFrame(frame);
 
   // untuk debugging di console
-  window.cvQuest = { state, player, gems, npcs, cat, weather, SECTIONS, setLang, get dark() { return dark; } };
+  window.cvQuest = { state, player, gems, npcs, cat, weather, fishing, SECTIONS, setLang, get dark() { return dark; } };
 })();

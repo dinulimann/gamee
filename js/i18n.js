@@ -53,6 +53,8 @@ window.I18N = {
       hacker: ['Hacker Desa', 'Jalankan query SQL di terminal rahasia'],
       cat: ['Sahabat Kucing', 'Beri makan kucing desa'],
       guest: ['Tamu Teladan', 'Tinggalkan pesan di papan tamu'],
+      fisher: ['Pemancing Pemula', 'Tangkap ikan pertamamu di dermaga'],
+      legend: ['Legenda Dermaga', 'Tangkap Ikan Kerapu Emas'],
       all_sections: ['Penjelajah', 'Kunjungi semua bangunan'],
       all_gems: ['Kolektor', 'Kumpulkan semua permata skill'],
     },
@@ -101,7 +103,8 @@ window.I18N = {
       <li>💬 Ngobrol dengan warga: klik warganya atau tekan <kbd>E</kbd> saat berada di dekatnya.</li>
       <li>💎 Permata berkilau = skill. Jalan di atasnya untuk mengambilnya.</li>
       <li>🎮 Di Kantor Karier ada simulasi optimasi payroll, di Lab Proyek ada animasi pipeline data.</li>
-      <li>📋 Papan tamu di alun-alun · 🐱 kucing desa suka ikan · 💻 tekan <kbd>&#96;</kbd> untuk terminal rahasia.</li>
+      <li>🎣 Dermaga di pantai barat: memancing ikan, termasuk Ikan Kerapu Emas yang langka.</li>
+      <li>📋 Papan tamu di alun-alun · 🐱 kucing desa minta ikan · 💻 tekan <kbd>&#96;</kbd> untuk terminal rahasia.</li>
       <li>🗺️ Klik minimap di pojok kanan bawah untuk berjalan cepat.</li>
       <li>⌨️ Pintasan: <kbd>Q</kbd> misi · <kbd>C</kbd> CV klasik · <kbd>M</kbd> efek suara · <kbd>N</kbd> musik · <kbd>T</kbd> siang/malam · <kbd>R</kbd> cuaca · <kbd>&#96;</kbd> terminal · <kbd>L</kbd> bahasa · <kbd>Esc</kbd> tutup.</li>
     </ul>
@@ -221,6 +224,35 @@ window.I18N = {
     gbError: 'Gagal mengirim pesan. Coba lagi nanti.',
     gbAnon: 'Pengunjung',
     gbRules: 'Tanpa tautan & kata kasar. Pesan bisa dihapus oleh pemilik situs.',
+
+    pFish: '{v} — memancing di dermaga 🎣',
+    fishTitle: 'Memancing di Dermaga',
+    fishIntro: 'Lempar kail, tunggu pelampung bergoyang, lalu tekan secepatnya saat ikan menyambar! Setelah itu tarik dengan menekan saat jarum ada di zona hijau.',
+    fishCast: '🎣 Lempar kail',
+    fishWaiting: 'Menunggu ikan… sabar ya 🌊',
+    fishEarly: 'Terlalu cepat! Ikannya kabur 💨',
+    fishBite: '❗ Ada yang menyambar! Tekan SEKARANG!',
+    fishHook: '⚡ Sambar!',
+    fishMissed: 'Telat… ikannya lepas 😅',
+    fishReel: 'Tarik! Tekan saat jarum di zona hijau ({h}/{n})',
+    fishReelBtn: '🪝 Tarik',
+    fishSnap: 'Tali putus! Ikannya berhasil kabur 🐟💨',
+    fishCaught: 'Dapat <b>{fish}</b>! {size}',
+    fishJunk: 'Hmm… cuma <b>{fish}</b>. Dibuang ke tempat sampah ♻️',
+    fishNew: '✨ Jenis baru di Buku Ikan!',
+    fishAgain: '🎣 Lempar lagi',
+    fishBag: '🧺 Keranjang: {n} ikan',
+    fishDex: 'BUKU IKAN ({n}/{t})',
+    fishKeyHint: 'Tombol: Spasi / E / ketuk tombol',
+    fishCm: '{n} cm',
+    fishNight: '🌙 Malam hari: ikan langka lebih sering muncul.',
+    fishRain: '🌧️ Hujan: ikan lebih cepat menyambar.',
+    catWantsFish: '{name} menatapmu penuh harap… sepertinya ia ingin ikan 🐟. Coba memancing di dermaga barat!',
+    catGiveFish: '🐟 Kamu memberi {name} seekor ikan. Ia senang sekali! 💛',
+    fishNames: {
+      teri: 'Ikan Teri', kembung: 'Ikan Kembung', kakap: 'Ikan Kakap Merah', buntal: 'Ikan Buntal',
+      tuna: 'Ikan Tuna', boot: 'Sepatu Bot Tua', bug: 'Bug Lepas dari Produksi', kerapu: 'Ikan Kerapu Emas',
+    },
   },
 
   en: {
@@ -272,6 +304,8 @@ window.I18N = {
       hacker: ['Village Hacker', 'Run a SQL query in the secret terminal'],
       cat: ['Cat Whisperer', 'Feed the village cat'],
       guest: ['Kind Visitor', 'Leave a message in the guestbook'],
+      fisher: ['Rookie Angler', 'Catch your first fish at the pier'],
+      legend: ['Pier Legend', 'Catch the Golden Grouper'],
       all_sections: ['Explorer', 'Visit every building'],
       all_gems: ['Collector', 'Collect every skill gem'],
     },
@@ -320,6 +354,7 @@ window.I18N = {
       <li>💬 Talk to villagers: click them or press <kbd>E</kbd> when you're close.</li>
       <li>💎 Sparkling gems are skills. Walk over one to collect it.</li>
       <li>🎮 The Career Office has a payroll optimization simulation; the Project Lab has a data pipeline animation.</li>
+      <li>🎣 The pier on the west coast: go fishing, including the rare Golden Grouper.</li>
       <li>📋 Guestbook in the plaza · 🐱 the village cat loves fish · 💻 press <kbd>&#96;</kbd> for the secret terminal.</li>
       <li>🗺️ Click the minimap in the bottom-right corner to travel quickly.</li>
       <li>⌨️ Shortcuts: <kbd>Q</kbd> quests · <kbd>C</kbd> plain CV · <kbd>M</kbd> sound effects · <kbd>N</kbd> music · <kbd>T</kbd> day/night · <kbd>R</kbd> weather · <kbd>&#96;</kbd> terminal · <kbd>L</kbd> language · <kbd>Esc</kbd> close.</li>
@@ -439,5 +474,33 @@ window.I18N = {
     gbError: "Couldn't send your message. Please try again later.",
     gbAnon: 'Visitor',
     gbRules: 'No links or rude words. The site owner can remove messages.',
+    pFish: '{v} — fish at the pier 🎣',
+    fishTitle: 'Fishing at the Pier',
+    fishIntro: 'Cast your line, wait for the bobber to wiggle, then press as fast as you can when a fish bites! Reel it in by pressing while the needle is in the green zone.',
+    fishCast: '🎣 Cast line',
+    fishWaiting: 'Waiting for a bite… be patient 🌊',
+    fishEarly: 'Too early! The fish swam away 💨',
+    fishBite: '❗ Something bit! Press NOW!',
+    fishHook: '⚡ Hook it!',
+    fishMissed: 'Too late… it got away 😅',
+    fishReel: 'Reel in! Press while the needle is in the green zone ({h}/{n})',
+    fishReelBtn: '🪝 Reel',
+    fishSnap: 'The line snapped! The fish escaped 🐟💨',
+    fishCaught: 'You caught a <b>{fish}</b>! {size}',
+    fishJunk: 'Hmm… just an <b>{fish}</b>. Into the recycling bin ♻️',
+    fishNew: '✨ New entry in the Fish Book!',
+    fishAgain: '🎣 Cast again',
+    fishBag: '🧺 Basket: {n} fish',
+    fishDex: 'FISH BOOK ({n}/{t})',
+    fishKeyHint: 'Keys: Space / E / tap the button',
+    fishCm: '{n} cm',
+    fishNight: '🌙 Night time: rare fish appear more often.',
+    fishRain: '🌧️ Rain: fish bite faster.',
+    catWantsFish: '{name} stares at you hopefully… looks like it wants a fish 🐟. Try fishing at the west pier!',
+    catGiveFish: '🐟 You gave {name} a fish. It looks so happy! 💛',
+    fishNames: {
+      teri: 'Anchovy', kembung: 'Mackerel', kakap: 'Red Snapper', buntal: 'Pufferfish',
+      tuna: 'Tuna', boot: 'Old Boot', bug: 'Escaped Production Bug', kerapu: 'Golden Grouper',
+    },
   },
 };
