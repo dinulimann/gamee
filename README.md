@@ -67,7 +67,8 @@ Semua gambar ada di folder **`assets/`** (PNG transparan): tile tanah, pohon, ai
 - Sprite karakter berupa strip 4 frame berjajar: **bawah, kiri, kanan, atas**. Animasi jalan ditangani kode.
 - Sprite warga dipilih lewat field `sprite` di `js/data.js`.
 - Ganti gambar cukup dengan menimpa file bernama sama. Kalau sebuah file tidak ada, game otomatis memakai gambar bawaan (digambar kode).
-- Lampu jalan, kucing, dan papan tamu digambar oleh kode.
+- Kucing (`cat.png`, strip 4 frame seperti karakter), lampu jalan (`lamp.png` menyala dan `lamp-off.png` mati, berganti halus mengikuti gelapnya hari), dan papan tamu (`guestbook.png`) memakai sprite. Kalau filenya tidak ada, ketiganya digambar oleh kode.
+- Sprite untuk fitur berikutnya sudah tersedia tetapi belum dipakai: `pier.png`, `boat.png`, `npc-nelayan.png`, `fish.png`, `building-certs.png`, `flag-merah-putih.png`, `lantern.png`, `bench.png`, `signpost.png`.
 
 ## Menjalankan
 

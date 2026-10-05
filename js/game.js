@@ -81,6 +81,7 @@
       'player', 'npc-kades', 'npc-bendahara', 'npc-data',
       'gem-backend', 'gem-frontend', 'gem-database', 'gem-data', 'gem-devops', 'gem-domain',
       'avatar', 'logo', 'title-bg',
+      'cat', 'lamp', 'lamp-off', 'guestbook',
     ];
     let pending = names.length;
     const done = () => {
@@ -1115,11 +1116,31 @@
       toast(lines[Math.floor(Math.random() * lines.length)].replace('{name}', t('catName')), 1800);
     }
   }
+  const CAT_H = 22; // tinggi sprite kucing (satuan dunia)
   function drawCat() {
     const { x, y } = cat, flip = cat.dir === 'left' ? -1 : 1;
     const step = cat.moving ? Math.sin(cat.phase) : 0, bob = Math.abs(step) * 1.2;
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
     ctx.beginPath(); ctx.ellipse(x, y, 9, 2.6, 0, 0, Math.PI * 2); ctx.fill();
+    const im = sprite('cat');
+    if (im) {
+      // strip 4 frame: bawah, kiri, kanan, atas (sama seperti player.png)
+      const fw = im.naturalWidth / 4, fh = im.naturalHeight;
+      const h = CAT_H, w = (fw / fh) * h;
+      const f = Math.max(0, DIRS.indexOf(cat.dir));
+      ctx.save(); ctx.translate(x, y + 1 - bob); ctx.rotate(step * 0.06);
+      ctx.drawImage(im, f * fw, 0, fw, fh, -w / 2, -h, w, h);
+      ctx.restore();
+    } else drawCatShape(x, y, flip, step, bob);
+    if (!state.catFed) {
+      const by = y - 32 + Math.sin(time * 3) * 2;
+      ctx.fillStyle = '#fff'; rrect(ctx, x - 10, by - 9, 20, 15, 5); ctx.fill();
+      ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('🐟', x, by - 1);
+    }
+  }
+  // kucing bawaan (digambar kode) bila assets/cat.png tidak ada
+  function drawCatShape(x, y, flip, step, bob) {
     ctx.save(); ctx.translate(x, y - bob); ctx.scale(flip, 1);
     const wag = Math.sin(time * (cat.moving ? 8 : 3));
     ctx.strokeStyle = '#d9822f'; ctx.lineWidth = 2.6; ctx.lineCap = 'round';
@@ -1140,12 +1161,6 @@
     ctx.fillRect(9.2, -13, 1.5, blink ? 0.5 : 2);
     ctx.fillStyle = '#ff8fa3'; ctx.fillRect(12, -11.5, 1.4, 1.2);
     ctx.restore();
-    if (!state.catFed) {
-      const by = y - 32 + Math.sin(time * 3) * 2;
-      ctx.fillStyle = '#fff'; rrect(ctx, x - 10, by - 9, 20, 15, 5); ctx.fill();
-      ctx.font = '11px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('🐟', x, by - 1);
-    }
   }
 
   // ---------------------------------------------------------------- papan tamu
@@ -1219,10 +1234,17 @@
     if (note) note.textContent = gb.note;
     if (key !== 'gbThanks') Sound.nope();
   }
+  const BOARD_W = 54; // lebar sprite papan tamu (satuan dunia)
   function drawBoard() {
     const { x, y } = BOARD;
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
     ctx.beginPath(); ctx.ellipse(x, y, 20, 4, 0, 0, Math.PI * 2); ctx.fill();
+    const im = sprite('guestbook');
+    if (im) {
+      const w = BOARD_W, h = (im.naturalHeight / im.naturalWidth) * w;
+      ctx.drawImage(im, x - w / 2, y - h + 2, w, h);
+      return;
+    }
     ctx.fillStyle = '#6b4226';
     ctx.fillRect(x - 17, y - 34, 4, 34); ctx.fillRect(x + 13, y - 34, 4, 34);
     ctx.fillStyle = '#a0673c'; rrect(ctx, x - 22, y - 46, 44, 28, 3); ctx.fill();
@@ -2239,10 +2261,22 @@
   }
 
   // ---------------------------------------------------------------- lampu & cahaya malam
+  const LAMP_H = 56; // tinggi sprite lampu jalan (satuan dunia)
   function drawLamp(L) {
     const { x, y } = L, lit = lampLit();
     ctx.fillStyle = 'rgba(0,0,0,0.2)';
     ctx.beginPath(); ctx.ellipse(x, y, 6, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+    const on = sprite('lamp'), off = sprite('lamp-off');
+    if (on || off) {
+      // lampu mati di bawah, lampu menyala di atasnya dengan transparansi sesuai gelapnya hari
+      const draw = (im, a) => {
+        const h = LAMP_H, w = (im.naturalWidth / im.naturalHeight) * h;
+        ctx.globalAlpha = a; ctx.drawImage(im, x - w / 2, y - h + 1, w, h); ctx.globalAlpha = 1;
+      };
+      if (off) draw(off, 1);
+      if (on && (lit > 0 || !off)) draw(on, off ? lit : 1);
+      return;
+    }
     ctx.fillStyle = '#3b3f4f';
     ctx.fillRect(x - 4, y - 4, 8, 4);
     ctx.fillRect(x - 1.5, y - 36, 3, 33);
