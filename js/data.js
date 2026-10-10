@@ -22,7 +22,7 @@
     name: NAME,
     role: "Full-stack Developer",
     location: "Jakarta, Indonesia",
-    tagline: "Membangun sistem backend yang cepat, rapi, dan bisa diandalkan — dari payroll sampai pipeline data.",
+    tagline: "Full-stack developer yang fokus di backend dan senang bekerja dengan data — dari sistem payroll sampai pipeline ETL.",
 
     about: [
       "Halo! Saya Dinul Iman, lulusan S1 Teknologi Informasi Universitas Sumatera Utara yang berfokus pada " +
@@ -211,7 +211,7 @@
   window.CV_EN = {
     role: "Full-stack Developer",
     location: "Jakarta, Indonesia",
-    tagline: "Building fast, clean and reliable backend systems — from payroll to data pipelines.",
+    tagline: "Full-stack developer focused on the backend, with a love for working with data — from payroll systems to ETL pipelines.",
 
     about: [
       "Hi! I'm Dinul Iman, an Information Technology graduate from Universitas Sumatera Utara focused on " +
