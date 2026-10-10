@@ -188,8 +188,8 @@ window.I18N = {
     etlHint: 'Ketuk setiap tahap untuk melihat penjelasannya.',
     etlRows: 'baris tersinkron',
     etlNodes: [
-      ['Oracle', 'Sumber data karyawan & keuangan. Data diambil dari sini sebagai titik awal.'],
-      ['PostgreSQL', 'Data disalin dan dirapikan, lalu diproses oleh stored procedure payroll.'],
+      ['Oracle', 'Titik awal: data diambil dari database Oracle.'],
+      ['PostgreSQL', 'Data dipindahkan ke PostgreSQL dan diproses oleh stored procedure payroll.'],
       ['Payroll', 'Perhitungan gaji: PPh 21, BPJS, pensiun, koperasi, piutang, dan proration.'],
       ['Jurnal Oracle', 'Hasil payroll dikirim kembali ke Oracle sebagai jurnal keuangan.'],
     ],
@@ -438,8 +438,8 @@ window.I18N = {
     etlHint: 'Tap each stage to see what it does.',
     etlRows: 'rows synced',
     etlNodes: [
-      ['Oracle', 'Source of employee and finance data — where every run starts.'],
-      ['PostgreSQL', 'Data is copied and cleaned, then processed by the payroll stored procedures.'],
+      ['Oracle', 'Starting point: data is taken from the Oracle database.'],
+      ['PostgreSQL', 'Data is moved into PostgreSQL and processed by the payroll stored procedures.'],
       ['Payroll', 'Salary calculation: PPh 21 income tax, BPJS, pension, cooperative, receivables and proration.'],
       ['Oracle Journal', 'Payroll results are sent back to Oracle as financial journal entries.'],
     ],
