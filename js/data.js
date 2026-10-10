@@ -20,13 +20,13 @@
 
   window.CV = {
     name: NAME,
-    role: "Backend & Full-stack Developer",
+    role: "Full-stack Developer",
     location: "Jakarta, Indonesia",
     tagline: "Membangun sistem backend yang cepat, rapi, dan bisa diandalkan — dari payroll sampai pipeline data.",
 
     about: [
       "Halo! Saya Dinul Iman, lulusan S1 Teknologi Informasi Universitas Sumatera Utara yang berfokus pada " +
-        "backend dan full-stack development. Sehari-hari saya bekerja dengan PHP, TypeScript, Node.js, dan " +
+        "full-stack development, dengan pengalaman terkuat di backend dan database. Sehari-hari saya bekerja dengan PHP, TypeScript, Node.js, dan " +
         "database relasional seperti PostgreSQL dan Oracle.",
       "Pengalaman paling menonjol saya adalah mengerjakan Payroll Management System untuk PT PELNI sebagai " +
         "programmer di PT Solusi Integrasi Utama (vendor PELNI). Sistem ini melayani " +
@@ -180,7 +180,7 @@
         home: [16, 14],
         lines: [
           "Selamat datang di Desa CV! 👋",
-          `Di sini kamu bisa mengenal ${NAME}, developer backend & full-stack dari Jakarta.`,
+          `Di sini kamu bisa mengenal ${NAME}, full-stack developer dari Jakarta.`,
           "Setiap bangunan berisi satu bagian CV. Masuk saja, pintunya selalu terbuka!",
         ],
       },
@@ -229,13 +229,13 @@
   //  VERSI INGGRIS (dipakai saat pengunjung memilih English)
   // ===========================================================
   window.CV_EN = {
-    role: "Backend & Full-stack Developer",
+    role: "Full-stack Developer",
     location: "Jakarta, Indonesia",
     tagline: "Building fast, clean and reliable backend systems — from payroll to data pipelines.",
 
     about: [
       "Hi! I'm Dinul Iman, an Information Technology graduate from Universitas Sumatera Utara focused on " +
-        "backend and full-stack development. Day to day I work with PHP, TypeScript, Node.js and relational " +
+        "full-stack development, with my strongest experience in backend and databases. Day to day I work with PHP, TypeScript, Node.js and relational " +
         "databases such as PostgreSQL and Oracle.",
       "My most notable work is the Payroll Management System I worked on for PT PELNI as a programmer at " +
         "PT Solusi Integrasi Utama, a PELNI vendor. It serves around 4,800–5,000 " +
@@ -355,7 +355,7 @@
         name: "Village Chief",
         lines: [
           "Welcome to CV Village! 👋",
-          `Here you can get to know ${NAME}, a backend & full-stack developer from Jakarta.`,
+          `Here you can get to know ${NAME}, a full-stack developer from Jakarta.`,
           "Each building holds one part of the CV. Come on in, the doors are always open!",
         ],
       },
