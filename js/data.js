@@ -103,9 +103,9 @@
       { name: "Node.js & NestJS", level: 4, category: "Backend", note: "Backend aplikasi ticketing klien PT PELNI." },
       { name: "TypeScript", level: 4, category: "Backend" },
       { name: "Python & Django", level: 3, category: "Backend" },
-      { name: "Go & Gin", level: 3, category: "Backend" },
+      { name: "Go & Gin", level: 3, category: "Backend", note: "Backend e-commerce GoBack (GORM, JWT, Midtrans)." },
       { name: "JavaScript", level: 4, category: "Frontend" },
-      { name: "React & Next.js", level: 3, category: "Frontend" },
+      { name: "React & Next.js", level: 3, category: "Frontend", note: "Botto, Toko Syuhada, dan frontend GoBack." },
       { name: "PostgreSQL", level: 5, category: "Database", note: "Stored procedure & optimasi query payroll." },
       { name: "Oracle", level: 4, category: "Database", note: "Integrasi data dan jurnal keuangan." },
       { name: "MySQL", level: 4, category: "Database" },
@@ -114,6 +114,8 @@
       { name: "JasperReports / JasperServer", level: 4, category: "Data", note: "Slip gaji dan laporan payroll." },
       { name: "Tableau", level: 3, category: "Data" },
       { name: "BigQuery", level: 3, category: "Data" },
+      { name: "Airflow & dbt", level: 3, category: "Data", note: "Orkestrasi & transformasi di proyek batch ELT." },
+      { name: "Spark & Kafka", level: 3, category: "Data", note: "Streaming real-time & lakehouse Delta Lake." },
       { name: "Docker / Rancher", level: 3, category: "DevOps" },
       { name: "Payroll & HRIS", level: 5, category: "Domain", note: "PPh 21, BPJS, pensiun, koperasi, piutang, proration." },
     ],
@@ -134,6 +136,62 @@
         desc: "Backend aplikasi ticketing, termasuk modul shipping insurance. Dikerjakan di PT Solusi Integrasi Utama.",
         tech: ["NestJS", "TypeScript", "PostgreSQL"],
         link: "",
+      },
+      {
+        name: "Portofolio Data Engineering",
+        desc:
+          "Tiga pipeline data end-to-end yang dibuat seperti sistem produksi skala kecil, lengkap dengan CI: " +
+          "batch ELT data cuaca 10 kota Indonesia (Airflow, MinIO, PostgreSQL, dbt, Metabase), " +
+          "streaming pesanan e-commerce real-time (Kafka, Spark Structured Streaming dengan watermark, dead-letter queue, Grafana), " +
+          "dan lakehouse NYC Taxi bronze → silver → gold (PySpark, Delta Lake, quality gate, time travel).",
+        tech: ["Python", "Airflow", "dbt", "Spark", "Kafka", "Delta Lake", "PostgreSQL", "Docker"],
+        link: "",
+      },
+      {
+        name: "Naver SmartStore Scraper API",
+        desc:
+          "REST API yang mengambil data produk dari halaman Naver SmartStore memakai headless browser yang disamarkan, " +
+          "rotasi proxy & fingerprint, throttling, dan cache. Backend scraping bisa diganti lewat env var tanpa ubah kode.",
+        tech: ["TypeScript", "Node.js", "Playwright"],
+        link: "https://github.com/dinulimann/naver-smartstore-scraper",
+      },
+      {
+        name: "GoBack — Platform E-Commerce",
+        desc:
+          "Aplikasi e-commerce fullstack: backend Go dengan autentikasi JWT, manajemen produk & stok, alamat, " +
+          "pembayaran Midtrans, dan dashboard admin; frontend React.",
+        tech: ["Go", "Gin", "GORM", "PostgreSQL", "React", "JWT"],
+        link: "",
+      },
+      {
+        name: "Job Market Analytics",
+        desc:
+          "Platform analisis pasar kerja: scraping lowongan, ekstraksi skill otomatis, analisis skill paling dicari, " +
+          "statistik gaji per lokasi & level, serta rekomendasi jalur karier.",
+        tech: ["Python", "Flask", "Vue.js"],
+        link: "",
+      },
+      {
+        name: "Botto — Chatbot RAG",
+        desc:
+          "Chatbot untuk tanya-jawab dengan dokumen sendiri (PDF, Word, TXT) memakai Retrieval-Augmented Generation " +
+          "dan respons streaming. Seluruh stack gratis.",
+        tech: ["Next.js", "TypeScript", "LangChain.js", "ChromaDB", "Groq (Llama 3.1)"],
+        link: "",
+      },
+      {
+        name: "Toko Syuhada — Website Toko Sepeda",
+        desc: "Website katalog & penjualan sepeda dengan filter kategori, pencarian produk, detail spesifikasi, dan artikel.",
+        tech: ["Next.js", "TypeScript", "Prisma", "PostgreSQL", "Tailwind CSS"],
+        link: "",
+      },
+      {
+        name: "Eksperimen Machine Learning",
+        desc:
+          "Kumpulan notebook: analisis sentimen teks, prediksi harga ETH dengan LSTM, chatbot seq2seq, " +
+          "klasifikasi gambar apel/tomat real-time lewat kamera, serta analisis data (harga mobil, kampanye iklan, diabetes).",
+        tech: ["Python", "TensorFlow/Keras", "Pandas", "OpenCV"],
+        link: "https://github.com/dinulimann?tab=repositories",
       },
       {
         name: "CV Quest",
@@ -284,13 +342,19 @@
       { note: "Used for the Payroll Management System (client: PT PELNI)." },
       {}, {},
       { note: "Backend of the ticketing application (client: PT PELNI)." },
-      {}, {}, {}, {}, {},
+      {}, {},
+      { note: "GoBack e-commerce backend (GORM, JWT, Midtrans)." },
+      {},
+      { note: "Botto, Toko Syuhada and the GoBack frontend." },
       { note: "Payroll stored procedures & query optimization." },
       { note: "Data and financial journal integration." },
       {}, {},
       { name: "ETL & Data Integration", note: "Oracle → PostgreSQL → payroll → Oracle journal." },
       { note: "Payslips and payroll reports." },
-      {}, {}, {},
+      {}, {},
+      { note: "Orchestration & transformation in the batch ELT project." },
+      { note: "Real-time streaming & Delta Lake lakehouse." },
+      {},
       { note: "PPh 21 income tax, BPJS, pension, cooperative, receivables, proration." },
     ],
 
@@ -306,6 +370,46 @@
       {
         name: "Ticketing Application for PT PELNI",
         desc: "Backend for a ticketing application, including a shipping insurance module. Built at PT Solusi Integrasi Utama.",
+      },
+      {
+        name: "Data Engineering Portfolio",
+        desc:
+          "Three end-to-end data pipelines built like small production systems, with CI: " +
+          "batch ELT of weather data for 10 Indonesian cities (Airflow, MinIO, PostgreSQL, dbt, Metabase), " +
+          "real-time e-commerce order streaming (Kafka, Spark Structured Streaming with watermarks, dead-letter queue, Grafana), " +
+          "and an NYC Taxi bronze → silver → gold lakehouse (PySpark, Delta Lake, quality gates, time travel).",
+      },
+      {
+        desc:
+          "REST API that extracts product data from Naver SmartStore pages using a stealth headless browser, " +
+          "rotating proxies & fingerprints, throttling and caching. The scraping backend can be swapped via an env var with no code changes.",
+      },
+      {
+        name: "GoBack — E-Commerce Platform",
+        desc:
+          "Full-stack e-commerce app: Go backend with JWT auth, product & stock management, addresses, " +
+          "Midtrans payments and an admin dashboard; React frontend.",
+      },
+      {
+        desc:
+          "Job market analysis platform: job-posting scraping, automatic skill extraction, in-demand skills, " +
+          "salary statistics by location & level, and career path recommendations.",
+      },
+      {
+        name: "Botto — RAG Chatbot",
+        desc:
+          "Chatbot for asking questions about your own documents (PDF, Word, TXT) using Retrieval-Augmented Generation " +
+          "with streaming responses. The whole stack is free.",
+      },
+      {
+        name: "Toko Syuhada — Bicycle Shop Website",
+        desc: "Bicycle catalog & sales website with category filters, product search, detailed specs and articles.",
+      },
+      {
+        name: "Machine Learning Experiments",
+        desc:
+          "A collection of notebooks: text sentiment analysis, ETH price forecasting with LSTM, a seq2seq chatbot, " +
+          "real-time apple/tomato image classification via webcam, and data analysis (car prices, ad campaigns, diabetes).",
       },
       {
         desc: "An interactive CV as a browser RPG — yes, the game you're playing right now!",
