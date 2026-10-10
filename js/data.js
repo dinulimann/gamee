@@ -58,44 +58,30 @@
 
     experience: [
       {
-        title: "Programmer — Payroll Management System",
+        title: "Programmer",
         company: "PT Solusi Integrasi Utama (vendor PT PELNI)",
         period: "Agu 2025 — Sekarang",
         points: [
-          "Mengembangkan sistem payroll berbasis PHP/CodeIgniter untuk ±4.800–5.000 karyawan.",
-          "Membangun perhitungan & pemrosesan payroll: PPh 21, BPJS, pensiun, koperasi, piutang, dan proration gaji.",
-          "Merancang integrasi data Oracle → PostgreSQL → payroll → jurnal Oracle.",
+          "Payroll Management System PT PELNI (±4.800–5.000 karyawan): pengembangan dengan PHP/CodeIgniter dan PostgreSQL.",
+          "Perhitungan & pemrosesan payroll: PPh 21, BPJS, pensiun, koperasi, piutang, dan proration gaji.",
+          "Mengerjakan integrasi data Oracle → PostgreSQL → payroll → jurnal Oracle.",
           "Mengoptimasi stored procedure payroll sehingga proses yang sebelumnya >10 menit menjadi <1 menit.",
           "Membuat slip gaji dan laporan payroll menggunakan JasperReports/JasperServer.",
-          "Mengelola environment aplikasi dengan Docker / Rancher Desktop.",
-        ],
-      },
-      {
-        title: "Programmer — Aplikasi Ticketing",
-        company: "PT Solusi Integrasi Utama (vendor PT PELNI)",
-        period: "Agu 2025 — Sekarang",
-        points: [
-          "Mengembangkan backend aplikasi ticketing menggunakan NestJS dan PostgreSQL.",
-          "Membangun modul asuransi pengiriman (shipping insurance).",
+          "Aplikasi ticketing PT PELNI: pengembangan backend dengan NestJS dan PostgreSQL, termasuk modul shipping insurance.",
+          "Menggunakan Docker / Rancher Desktop untuk environment aplikasi.",
         ],
       },
       {
         title: "Asisten Laboratorium Struktur Data & Algoritma",
         company: "Universitas Sumatera Utara",
         period: "Jan 2021 — Jun 2021",
-        points: [
-          "Membimbing praktikum struktur data dan algoritma.",
-          "Membantu mahasiswa memahami implementasi dan kompleksitas algoritma.",
-        ],
+        points: ["Asisten praktikum mata kuliah Struktur Data & Algoritma."],
       },
       {
         title: "Asisten Laboratorium Basis Data",
         company: "Universitas Sumatera Utara",
         period: "Jun 2020 — Jan 2021",
-        points: [
-          "Membimbing praktikum perancangan basis data dan SQL.",
-          "Menyiapkan materi dan memeriksa tugas praktikum.",
-        ],
+        points: ["Asisten praktikum mata kuliah Basis Data."],
       },
     ],
 
@@ -144,14 +130,8 @@
         link: "",
       },
       {
-        name: "Pipeline Integrasi Payroll ↔ Oracle",
-        desc: "Alur data Oracle → PostgreSQL → proses payroll → jurnal kembali ke Oracle, sehingga data HR dan keuangan tetap sinkron.",
-        tech: ["Oracle", "PostgreSQL", "Stored Procedure", "ETL"],
-        link: "",
-      },
-      {
         name: "Aplikasi Ticketing untuk PT PELNI",
-        desc: "Backend aplikasi ticketing, termasuk modul asuransi pengiriman (shipping insurance). Dikerjakan di PT Solusi Integrasi Utama.",
+        desc: "Backend aplikasi ticketing, termasuk modul shipping insurance. Dikerjakan di PT Solusi Integrasi Utama.",
         tech: ["NestJS", "TypeScript", "PostgreSQL"],
         link: "",
       },
@@ -267,42 +247,28 @@
 
     experience: [
       {
-        title: "Programmer — Payroll Management System",
+        title: "Programmer",
         company: "PT Solusi Integrasi Utama (PT PELNI vendor)",
         period: "Aug 2025 — Present",
         points: [
-          "Developed a PHP/CodeIgniter payroll system for ±4,800–5,000 employees.",
-          "Built payroll calculation and processing: PPh 21 income tax, BPJS, pension, cooperative, receivables and salary proration.",
-          "Designed the data integration Oracle → PostgreSQL → payroll → Oracle journal.",
+          "PT PELNI Payroll Management System (±4,800–5,000 employees): development with PHP/CodeIgniter and PostgreSQL.",
+          "Payroll calculation and processing: PPh 21 income tax, BPJS, pension, cooperative, receivables and salary proration.",
+          "Worked on the data integration Oracle → PostgreSQL → payroll → Oracle journal.",
           "Optimized payroll stored procedures, cutting a run that took >10 minutes to <1 minute.",
           "Built payslips and payroll reports with JasperReports/JasperServer.",
-          "Managed application environments with Docker / Rancher Desktop.",
-        ],
-      },
-      {
-        title: "Programmer — Ticketing Application",
-        company: "PT Solusi Integrasi Utama (PT PELNI vendor)",
-        period: "Aug 2025 — Present",
-        points: [
-          "Developed the backend of a ticketing application with NestJS and PostgreSQL.",
-          "Built the shipping insurance module.",
+          "PT PELNI ticketing application: backend development with NestJS and PostgreSQL, including the shipping insurance module.",
+          "Used Docker / Rancher Desktop for application environments.",
         ],
       },
       {
         title: "Data Structures & Algorithms Lab Assistant",
         period: "Jan 2021 — Jun 2021",
-        points: [
-          "Supervised data structures and algorithms lab sessions.",
-          "Helped students understand algorithm implementation and complexity.",
-        ],
+        points: ["Teaching assistant for the Data Structures & Algorithms lab course."],
       },
       {
         title: "Database Lab Assistant",
         period: "Jun 2020 — Jan 2021",
-        points: [
-          "Supervised database design and SQL lab sessions.",
-          "Prepared lab materials and graded assignments.",
-        ],
+        points: ["Teaching assistant for the Database lab course."],
       },
     ],
 
@@ -336,10 +302,6 @@
           "and proration; Oracle ↔ PostgreSQL integration; payslips & reports via JasperServer. " +
           "Stored procedure optimization cut the run from >10 minutes to <1 minute. " +
           "Built as a programmer at PT Solusi Integrasi Utama.",
-      },
-      {
-        name: "Payroll ↔ Oracle Integration Pipeline",
-        desc: "Data flow Oracle → PostgreSQL → payroll processing → journal back into Oracle, keeping HR and finance data in sync.",
       },
       {
         name: "Ticketing Application for PT PELNI",
