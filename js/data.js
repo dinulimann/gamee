@@ -189,6 +189,42 @@
         link: "https://github.com/dinulimann/cdc-pipeline",
       },
       {
+        name: "Demand Forecasting — 12.196 Produk Walmart",
+        desc:
+          "Ramalan penjualan harian 28 hari ke depan dari data nyata kompetisi M5. Satu model LightGBM untuk semua produk, " +
+          "fitur yang diuji anti-bocor, backtest bergulir, lalu diuji sekali pada periode rahasia kompetisi: " +
+          "error 30% lebih rendah dari baseline, interval 80% tepat (cakupan 78,9%). Dilengkapi dashboard Streamlit.",
+        tech: ["Python", "LightGBM", "Pandas", "Streamlit"],
+        link: "https://github.com/dinulimann/demand-forecasting",
+      },
+      {
+        name: "Analisis A/B Test",
+        desc:
+          "Eksperimen nyata 90 ribu pemain (Cookie Cats) dianalisis lengkap: menemukan pembagian grup yang tidak seimbang " +
+          "yang sering terlewat, uji sensitivitas, Bayesian, plus simulasi yang membuktikan bahaya 'mengintip' hasil (5% → 27% false positive) " +
+          "dan manfaat CUPED.",
+        tech: ["Python", "SciPy", "Statistik", "Pandas"],
+        link: "https://github.com/dinulimann/ab-testing",
+      },
+      {
+        name: "Event Analytics dengan ClickHouse",
+        desc:
+          "Analitik produk milik sendiri ala Google Analytics: API collector → ClickHouse → Grafana. 20 juta event, " +
+          "funnel, retensi, A/B, dan deteksi rilis aplikasi yang merusak pembayaran. Semua angka dicek terhadap kunci jawaban; " +
+          "uji beban 14 ribu event/detik tanpa data hilang atau dobel.",
+        tech: ["ClickHouse", "FastAPI", "Grafana", "Python", "Docker"],
+        link: "https://github.com/dinulimann/event-analytics",
+      },
+      {
+        name: "Data Quality Monitor",
+        desc:
+          "Pemantau kualitas data untuk warehouse gempa USGS: kesegaran, volume, pergeseran distribusi (PSI), skema, rekonsiliasi, " +
+          "alert ke Slack saat status berubah, dan laporan HTML. Diuji dengan 8 insiden buatan dan diputar ulang 76 hari data asli " +
+          "tanpa satu pun alarm gagal palsu.",
+        tech: ["Python", "DuckDB", "dbt", "SQL"],
+        link: "https://github.com/dinulimann/data-quality-monitor",
+      },
+      {
         name: "Naver SmartStore Scraper API",
         desc:
           "REST API yang mengambil data produk dari halaman Naver SmartStore memakai headless browser yang disamarkan, " +
@@ -518,6 +554,30 @@
           "Change data capture from an operational PostgreSQL into an analytics database in near real time (p50 lag about 1 s). " +
           "Idempotent by LSN, full change history, automatic schema evolution. Chaos-tested (consumer crash, Debezium restart, new column) " +
           "and verified row by row in CI.",
+      },
+      {
+        desc:
+          "Daily sales forecasts 28 days ahead from the real M5 competition data. One LightGBM model for every product, " +
+          "leakage-tested features, a rolling backtest, then a single run on the competition's hidden period: " +
+          "30% lower error than the baseline and calibrated 80% intervals (78.9% coverage). Streamlit dashboard included.",
+      },
+      {
+        desc:
+          "A real 90,000-player experiment (Cookie Cats) analysed properly: it finds a group-split imbalance that most analyses miss, " +
+          "adds sensitivity checks and a Bayesian view, plus simulations showing why peeking at results is dangerous (5% → 27% false positives) " +
+          "and what CUPED saves.",
+      },
+      {
+        desc:
+          "Self-hosted product analytics in the style of Google Analytics: collector API → ClickHouse → Grafana. 20 million events, " +
+          "funnels, retention, A/B results, and detection of an app release that broke payments. Every number is checked against " +
+          "ground truth; load-tested at 14,000 events/s with nothing lost or duplicated.",
+      },
+      {
+        desc:
+          "Data quality monitoring for a warehouse of USGS earthquake data: freshness, volume, distribution drift (PSI), schema, " +
+          "reconciliation, Slack alerts on status changes, and an HTML report. Tested with 8 injected incidents and replayed over " +
+          "76 days of real data without a single false failure.",
       },
       {
         desc:
