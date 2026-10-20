@@ -118,6 +118,8 @@
       { name: "Spark & Kafka", level: 3, category: "Data", note: "Streaming real-time & lakehouse Delta Lake." },
       { name: "Docker / Rancher", level: 3, category: "DevOps" },
       { name: "Payroll & HRIS", level: 5, category: "Domain", note: "PPh 21, BPJS, pensiun, koperasi, piutang, proration." },
+      { name: "LLM & AI Integration", level: 3, category: "Data", note: "LLM lokal (Ollama), structured output, validasi hasil AI." },
+      { name: "n8n & Workflow Automation", level: 3, category: "DevOps", note: "Webhook, LLM, PostgreSQL, alert Slack/Discord." },
     ],
 
     projects: [
@@ -154,6 +156,39 @@
           "rotasi proxy & fingerprint, throttling, dan cache. Backend scraping bisa diganti lewat env var tanpa ubah kode.",
         tech: ["TypeScript", "Node.js", "Playwright"],
         link: "https://github.com/dinulimann/naver-smartstore-scraper",
+      },
+      {
+        name: "AI Document Extractor",
+        desc:
+          "Invoice PDF diubah jadi data terstruktur di PostgreSQL memakai LLM lokal (Ollama), jadi dokumen tidak keluar dari server. " +
+          "Model hanya membaca; tanggal dan mata uang dinormalisasi oleh kode, lalu angka dicek (qty × harga, subtotal, pajak, total). " +
+          "Yang tidak cocok masuk antrean review. Akurasi 100% pada set uji (60/60 field, 20/20 baris item).",
+        tech: ["Python", "FastAPI", "Ollama", "PostgreSQL", "Pydantic"],
+        link: "https://github.com/dinulimann/ai-document-extractor",
+      },
+      {
+        name: "AI Ticket Triage dengan n8n",
+        desc:
+          "Workflow n8n yang membaca pesan pelanggan (Indonesia/Inggris), mengklasifikasi kategori & prioritas dengan LLM lokal, " +
+          "membuat draf balasan, menyimpan tiket ke PostgreSQL, dan mengirim alert Slack/Discord untuk yang urgent. Plus ringkasan harian.",
+        tech: ["n8n", "Ollama", "PostgreSQL", "JavaScript", "Docker"],
+        link: "https://github.com/dinulimann/n8n-ai-ticket-triage",
+      },
+      {
+        name: "Price Tracker",
+        desc:
+          "Scraper async yang mengambil 1.000 produk dalam ±60 detik dengan retry & rate limit, menyimpan riwayat harga di PostgreSQL, " +
+          "mendeteksi perubahan harga/stok, mengirim alert, dan menampilkan dashboard Streamlit.",
+        tech: ["Python", "httpx", "PostgreSQL", "Streamlit", "pytest"],
+        link: "https://github.com/dinulimann/price-tracker",
+      },
+      {
+        name: "Studi Kasus Optimasi Payroll PostgreSQL",
+        desc:
+          "Rekonstruksi masalah payroll nyata dengan data sintetis 5.000 pegawai: dari loop per baris 28 detik menjadi 0,2 detik (140x) " +
+          "lewat indeks, caching di luar loop, dan versi set-based, dengan hasil yang dicek identik baris per baris.",
+        tech: ["PostgreSQL", "PL/pgSQL", "Docker"],
+        link: "https://github.com/dinulimann/postgres-payroll-optimization",
       },
       {
         name: "GoBack — Platform E-Commerce",
@@ -356,6 +391,8 @@
       { note: "Real-time streaming & Delta Lake lakehouse." },
       {},
       { note: "PPh 21 income tax, BPJS, pension, cooperative, receivables, proration." },
+      { note: "Local LLMs (Ollama), structured output, validating AI results." },
+      { note: "Webhooks, LLMs, PostgreSQL, Slack/Discord alerts." },
     ],
 
     projects: [
@@ -383,6 +420,29 @@
         desc:
           "REST API that extracts product data from Naver SmartStore pages using a stealth headless browser, " +
           "rotating proxies & fingerprints, throttling and caching. The scraping backend can be swapped via an env var with no code changes.",
+      },
+      {
+        desc:
+          "Turns invoice PDFs into structured data in PostgreSQL with a local LLM (Ollama), so documents never leave the server. " +
+          "The model only reads; dates and currency are normalised in code, then the numbers are checked (qty × price, subtotal, tax, total). " +
+          "Anything that doesn't add up goes to a review queue. 100% accuracy on the test set (60/60 fields, 20/20 line items).",
+      },
+      {
+        name: "AI Ticket Triage with n8n",
+        desc:
+          "n8n workflow that reads customer messages (Indonesian/English), classifies category & priority with a local LLM, " +
+          "drafts a reply, stores the ticket in PostgreSQL and alerts Slack/Discord when it's urgent. Plus a daily digest.",
+      },
+      {
+        desc:
+          "Async scraper that collects 1,000 products in about 60 seconds with retries and rate limiting, keeps price history in PostgreSQL, " +
+          "detects price/stock changes, sends alerts and shows a Streamlit dashboard.",
+      },
+      {
+        name: "PostgreSQL Payroll Optimization Case Study",
+        desc:
+          "A real payroll problem rebuilt with synthetic data for 5,000 employees: from a 28-second row-by-row loop to 0.2 seconds (140x) " +
+          "using indexes, caching outside the loop and a set-based version, with results verified identical row by row.",
       },
       {
         name: "GoBack — E-Commerce Platform",
