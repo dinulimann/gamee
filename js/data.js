@@ -232,10 +232,10 @@
       {
         name: "Eksperimen Machine Learning",
         desc:
-          "Kumpulan notebook: analisis sentimen teks, prediksi harga ETH dengan LSTM, chatbot seq2seq, " +
+          "Kumpulan notebook: chatbot Telegram kripto dengan LSTM (skripsi), prediksi harga kripto dengan LSTM, analisis sentimen, chatbot seq2seq, " +
           "klasifikasi gambar apel/tomat real-time lewat kamera, serta analisis data (harga mobil, kampanye iklan, diabetes).",
         tech: ["Python", "TensorFlow/Keras", "Pandas", "OpenCV"],
-        link: "https://github.com/dinulimann?tab=repositories",
+        link: "https://github.com/dinulimann/ml-notebooks",
       },
       {
         name: "CV Quest",
@@ -483,7 +483,7 @@
       {
         name: "Machine Learning Experiments",
         desc:
-          "A collection of notebooks: text sentiment analysis, ETH price forecasting with LSTM, a seq2seq chatbot, " +
+          "A collection of notebooks: an LSTM crypto Telegram chatbot (thesis), crypto price forecasting with LSTM, sentiment analysis, a seq2seq chatbot, " +
           "real-time apple/tomato image classification via webcam, and data analysis (car prices, ad campaigns, diabetes).",
       },
       {
