@@ -233,9 +233,17 @@
         name: "Eksperimen Machine Learning",
         desc:
           "Kumpulan notebook: chatbot Telegram kripto dengan LSTM (skripsi), prediksi harga kripto dengan LSTM, analisis sentimen, chatbot seq2seq, " +
-          "klasifikasi gambar apel/tomat real-time lewat kamera, serta analisis data (harga mobil, kampanye iklan, diabetes).",
-        tech: ["Python", "TensorFlow/Keras", "Pandas", "OpenCV"],
+          "serta analisis data dengan Pandas dan PySpark (harga mobil, kampanye iklan, diabetes).",
+        tech: ["Python", "TensorFlow/Keras", "Pandas", "PySpark"],
         link: "https://github.com/dinulimann/ml-notebooks",
+      },
+      {
+        name: "Apple or Tomato — Klasifikasi Gambar Real-time",
+        desc:
+          "Membedakan apel dan tomat langsung dari kamera: transfer learning MobileNetV2 dengan augmentasi data, " +
+          "lalu aplikasi OpenCV yang menampilkan prediksi dan tingkat keyakinan secara real-time.",
+        tech: ["Python", "TensorFlow/Keras", "MobileNetV2", "OpenCV"],
+        link: "https://github.com/dinulimann/appleortomato",
       },
       {
         name: "CV Quest",
@@ -484,7 +492,13 @@
         name: "Machine Learning Experiments",
         desc:
           "A collection of notebooks: an LSTM crypto Telegram chatbot (thesis), crypto price forecasting with LSTM, sentiment analysis, a seq2seq chatbot, " +
-          "real-time apple/tomato image classification via webcam, and data analysis (car prices, ad campaigns, diabetes).",
+          "and data analysis with Pandas and PySpark (car prices, ad campaigns, diabetes).",
+      },
+      {
+        name: "Apple or Tomato — Real-time Image Classifier",
+        desc:
+          "Tells apples from tomatoes straight from a webcam: MobileNetV2 transfer learning with data augmentation, " +
+          "and an OpenCV app that shows the prediction and its confidence in real time.",
       },
       {
         desc: "An interactive CV as a browser RPG — yes, the game you're playing right now!",
