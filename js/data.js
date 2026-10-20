@@ -167,6 +167,15 @@
         link: "https://github.com/dinulimann/ai-document-extractor",
       },
       {
+        name: "Text-to-SQL Agent",
+        desc:
+          "Tanya database PostgreSQL dengan bahasa biasa (Indonesia/Inggris): LLM lokal menulis SQL, lalu pemeriksa SQL (sqlglot) " +
+          "dan user database read-only memastikan query hanya bisa membaca data. Hasil berupa tabel dan grafik. " +
+          "Akurasi 20/24 pada set uji, dan 6/6 permintaan berbahaya ditolak tanpa mengubah data.",
+        tech: ["Python", "FastAPI", "Ollama", "sqlglot", "PostgreSQL"],
+        link: "https://github.com/dinulimann/text-to-sql-agent",
+      },
+      {
         name: "AI Ticket Triage dengan n8n",
         desc:
           "Workflow n8n yang membaca pesan pelanggan (Indonesia/Inggris), mengklasifikasi kategori & prioritas dengan LLM lokal, " +
@@ -443,6 +452,12 @@
           "Turns invoice PDFs into structured data in PostgreSQL with a local LLM (Ollama), so documents never leave the server. " +
           "The model only reads; dates and currency are normalised in code, then the numbers are checked (qty × price, subtotal, tax, total). " +
           "Anything that doesn't add up goes to a review queue. 100% accuracy on the test set (60/60 fields, 20/20 line items).",
+      },
+      {
+        desc:
+          "Ask a PostgreSQL database in plain language (English/Indonesian): a local LLM writes the SQL, then a sqlglot guard " +
+          "and a read-only database role make sure it can only read. Results come back as a table and a chart. " +
+          "20/24 correct on the test set, and 6/6 hostile requests refused without touching the data.",
       },
       {
         name: "AI Ticket Triage with n8n",
