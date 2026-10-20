@@ -217,6 +217,15 @@
         link: "https://github.com/dinulimann/goback",
       },
       {
+        name: "Payment Webhooks (Midtrans) dengan Go",
+        desc:
+          "Checkout Midtrans yang tahan webhook palsu, dobel, tidak berurutan, dan hilang: verifikasi tanda tangan, cek nominal, " +
+          "idempotensi di database, mesin status, dan rekonsiliasi lewat Status API. Dilengkapi simulator Midtrans lokal; " +
+          "semua skenario dijalankan otomatis di CI.",
+        tech: ["Go", "Gin", "PostgreSQL", "Midtrans", "Docker"],
+        link: "https://github.com/dinulimann/payment-webhooks-go",
+      },
+      {
         name: "Job Market Analytics",
         desc:
           "Platform analisis pasar kerja: scraping lowongan, ekstraksi skill otomatis, analisis skill paling dicari, " +
@@ -487,6 +496,13 @@
         desc:
           "Full-stack e-commerce app: Go backend with JWT auth, product & stock management, addresses, " +
           "Midtrans payments and an admin dashboard; React frontend.",
+      },
+      {
+        name: "Payment Webhooks (Midtrans) in Go",
+        desc:
+          "Midtrans checkout that survives forged, duplicate, out-of-order and lost webhooks: signature and amount checks, " +
+          "database-level idempotency, a status machine and reconciliation via the status API. Ships with a local Midtrans " +
+          "simulator; every scenario runs in CI.",
       },
       {
         desc:
