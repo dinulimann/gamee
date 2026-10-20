@@ -34,7 +34,9 @@
         "integrasi jurnal ke Oracle. Salah satu pencapaian favorit saya: memangkas proses payroll dari lebih " +
         "dari 10 menit menjadi kurang dari 1 menit lewat optimasi stored procedure.",
       "Saya senang dengan pekerjaan yang dekat dengan data: ETL/ELT, data warehouse, dan otomasi. " +
-        "Belakangan saya juga aktif mengeksplorasi AI coding agents seperti Claude Code, Codex, dan MCP.",
+        "Belakangan saya juga aktif mengeksplorasi AI coding agents seperti Claude Code, Codex, dan MCP. " +
+        "Di luar pekerjaan, saya membangun proyek portofolio terbuka: ekstraksi dokumen dan Text-to-SQL dengan LLM lokal, " +
+        "checkout Midtrans yang tahan webhook bermasalah, hingga pipeline data dengan Airflow, Kafka, dan Spark.",
     ],
 
     facts: [
@@ -52,6 +54,7 @@
       "Software Engineer",
       "Data Engineer",
       "HRIS / Payroll Technology",
+      "Freelance: backend, data & otomasi AI",
     ],
 
     interests: ["AI & Data", "ETL/ELT & Data Warehouse", "TypeScript", "AI Coding Agents", "Claude Code · Codex · MCP", "Automation"],
@@ -98,12 +101,12 @@
     // Backend, Frontend, Database, Data, DevOps, Domain
     skills: [
       { name: "PHP & CodeIgniter", level: 5, category: "Backend", note: "Dipakai untuk Payroll Management System klien PT PELNI." },
-      { name: "Laravel", level: 4, category: "Backend" },
+      { name: "Laravel", level: 4, category: "Backend", note: "Leave Management API: hari kerja, saldo cuti, penguncian baris, CI." },
       { name: "Yii2", level: 3, category: "Backend" },
       { name: "Node.js & NestJS", level: 4, category: "Backend", note: "Backend aplikasi ticketing klien PT PELNI." },
       { name: "TypeScript", level: 4, category: "Backend" },
-      { name: "Python & Django", level: 3, category: "Backend" },
-      { name: "Go & Gin", level: 3, category: "Backend", note: "Backend e-commerce GoBack (GORM, JWT, Midtrans)." },
+      { name: "Python (FastAPI, Django)", level: 3, category: "Backend", note: "FastAPI di AI Document Extractor & Text-to-SQL Agent." },
+      { name: "Go & Gin", level: 3, category: "Backend", note: "GoBack (GORM, JWT) & Payment Webhooks (pgx, idempotensi, Midtrans)." },
       { name: "JavaScript", level: 4, category: "Frontend" },
       { name: "React & Next.js", level: 3, category: "Frontend", note: "Botto, Toko Syuhada, dan frontend GoBack." },
       { name: "PostgreSQL", level: 5, category: "Database", note: "Stored procedure & optimasi query payroll." },
@@ -118,8 +121,10 @@
       { name: "Spark & Kafka", level: 3, category: "Data", note: "Streaming real-time & lakehouse Delta Lake." },
       { name: "Docker / Rancher", level: 3, category: "DevOps" },
       { name: "Payroll & HRIS", level: 5, category: "Domain", note: "PPh 21, BPJS, pensiun, koperasi, piutang, proration." },
-      { name: "LLM & AI Integration", level: 3, category: "Data", note: "LLM lokal (Ollama), structured output, validasi hasil AI." },
+      { name: "LLM & AI Integration", level: 3, category: "Data", note: "LLM lokal (Ollama): ekstraksi dokumen, Text-to-SQL, validasi hasil AI." },
       { name: "n8n & Workflow Automation", level: 3, category: "DevOps", note: "Webhook, LLM, PostgreSQL, alert Slack/Discord." },
+      { name: "Web Scraping", level: 4, category: "Data", note: "httpx async & Playwright, retry, rate limit: Price Tracker & Naver Scraper." },
+      { name: "Payment Gateway", level: 3, category: "Backend", note: "Midtrans Snap, verifikasi tanda tangan, idempotensi, rekonsiliasi." },
     ],
 
     projects: [
@@ -302,6 +307,7 @@
           "Dulu hitung gaji di desa ini lamaaa sekali, lebih dari 10 menit! ⏳",
           `Setelah ${NAME} mengoptimasi stored procedure-nya, sekarang kurang dari 1 menit. Gaji ±5.000 orang beres! 💸`,
           "Mampir ke Kantor Karier kalau mau tahu ceritanya.",
+          "Pembayaran online di desa ini juga aman: webhook palsu atau dobel tidak bisa bikin pesanan dibayar dua kali 🔒",
         ],
       },
       {
@@ -314,6 +320,7 @@
           "Ada permata berkilau tersebar di desa ✨ Setiap permata adalah satu skill.",
           "Ada PostgreSQL, Oracle, NestJS, Go... kumpulkan semuanya di Bengkel Skill!",
           "Kalau buru-buru, tekan tombol 📄 di pojok kanan atas untuk CV versi biasa.",
+          "Mau lihat AI yang bisa ditanya pakai bahasa biasa, atau yang membaca invoice sendiri? Mampir ke Lab Proyek 🧪",
           "Psst… ada terminal rahasia. Tekan tombol ` di keyboard, atau buka lewat menu ⚙️ 💻",
         ],
       },
@@ -351,7 +358,9 @@
         "with Oracle. A favourite achievement: cutting the payroll run from more than 10 minutes to under " +
         "1 minute by optimizing stored procedures.",
       "I enjoy work that sits close to data: ETL/ELT, data warehousing and automation. Lately I've also " +
-        "been actively exploring AI coding agents such as Claude Code, Codex and MCP.",
+        "been actively exploring AI coding agents such as Claude Code, Codex and MCP. Outside work I build open " +
+        "portfolio projects: document extraction and Text-to-SQL with local LLMs, a Midtrans checkout that survives " +
+        "misbehaving webhooks, and data pipelines with Airflow, Kafka and Spark.",
     ],
 
     facts: [
@@ -369,6 +378,7 @@
       "Software Engineer",
       "Data Engineer",
       "HRIS / Payroll Technology",
+      "Freelance: backend, data & AI automation",
     ],
 
     interests: ["AI & Data", "ETL/ELT & Data Warehousing", "TypeScript", "AI Coding Agents", "Claude Code · Codex · MCP", "Automation"],
@@ -410,10 +420,10 @@
     // hanya `note` yang diterjemahkan; urutan sama dengan daftar skill di atas
     skills: [
       { note: "Used for the Payroll Management System (client: PT PELNI)." },
-      {}, {},
+      { note: "Leave Management API: working days, leave balances, row locking, CI." }, {},
       { note: "Backend of the ticketing application (client: PT PELNI)." },
-      {}, {},
-      { note: "GoBack e-commerce backend (GORM, JWT, Midtrans)." },
+      {}, { note: "FastAPI in the AI Document Extractor and Text-to-SQL Agent." },
+      { note: "GoBack (GORM, JWT) and Payment Webhooks (pgx, idempotency, Midtrans)." },
       {},
       { note: "Botto, Toko Syuhada and the GoBack frontend." },
       { note: "Payroll stored procedures & query optimization." },
@@ -426,8 +436,10 @@
       { note: "Real-time streaming & Delta Lake lakehouse." },
       {},
       { note: "PPh 21 income tax, BPJS, pension, cooperative, receivables, proration." },
-      { note: "Local LLMs (Ollama), structured output, validating AI results." },
+      { note: "Local LLMs (Ollama): document extraction, Text-to-SQL, validating AI output." },
       { note: "Webhooks, LLMs, PostgreSQL, Slack/Discord alerts." },
+      { note: "Async httpx & Playwright with retries and rate limits: Price Tracker & Naver Scraper." },
+      { note: "Midtrans Snap, signature checks, idempotency, reconciliation." },
     ],
 
     projects: [
@@ -551,6 +563,7 @@
           "Paying salaries in this village used to take sooo long, more than 10 minutes! ⏳",
           `After ${NAME} optimized the stored procedures, it takes under 1 minute. Salaries for ±5,000 people, done! 💸`,
           "Drop by the Career Office if you want the full story.",
+          "Online payments here are safe too: a forged or duplicate webhook can't get an order paid twice 🔒",
         ],
       },
       {
@@ -559,6 +572,7 @@
           "There are sparkling gems scattered around the village ✨ Each gem is one skill.",
           "PostgreSQL, Oracle, NestJS, Go... collect them all for the Skill Workshop!",
           "In a hurry? Press the 📄 button in the top-right corner for the plain CV.",
+          "Want an AI you can question in plain language, or one that reads invoices? Visit the Project Lab 🧪",
           "Psst… there's a secret terminal. Press the ` key, or open it from the ⚙️ menu 💻",
         ],
       },
