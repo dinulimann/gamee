@@ -191,6 +191,15 @@
         link: "https://github.com/dinulimann/postgres-payroll-optimization",
       },
       {
+        name: "Leave Management API",
+        desc:
+          "REST API cuti pegawai dengan Laravel: hitung hari kerja (tanpa akhir pekan & hari libur), saldo per jenis cuti, " +
+          "pengajuan yang menunggu ikut memesan saldo, persetujuan atasan, dan penguncian baris supaya aman dari request bersamaan. " +
+          "20 test berjalan di SQLite dan PostgreSQL lewat CI.",
+        tech: ["PHP", "Laravel", "Sanctum", "PostgreSQL", "PHPUnit", "GitHub Actions"],
+        link: "https://github.com/dinulimann/leave-management-api",
+      },
+      {
         name: "GoBack — Platform E-Commerce",
         desc:
           "Aplikasi e-commerce fullstack: backend Go dengan autentikasi JWT, manajemen produk & stok, alamat, " +
@@ -443,6 +452,12 @@
         desc:
           "A real payroll problem rebuilt with synthetic data for 5,000 employees: from a 28-second row-by-row loop to 0.2 seconds (140x) " +
           "using indexes, caching outside the loop and a set-based version, with results verified identical row by row.",
+      },
+      {
+        desc:
+          "Employee leave REST API in Laravel: working-day calculation (weekends & holidays excluded), per-type balances, " +
+          "pending requests that reserve balance, manager approval, and row locking so parallel requests stay safe. " +
+          "20 tests run on SQLite and PostgreSQL in CI.",
       },
       {
         name: "GoBack — E-Commerce Platform",
