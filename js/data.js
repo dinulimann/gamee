@@ -117,8 +117,8 @@
       { name: "JasperReports / JasperServer", level: 4, category: "Data", note: "Slip gaji dan laporan payroll." },
       { name: "Tableau", level: 3, category: "Data" },
       { name: "BigQuery", level: 3, category: "Data" },
-      { name: "Airflow & dbt", level: 3, category: "Data", note: "Orkestrasi & transformasi di proyek batch ELT." },
-      { name: "Spark & Kafka", level: 3, category: "Data", note: "Streaming real-time & lakehouse Delta Lake." },
+      { name: "Airflow & dbt", level: 3, category: "Data", note: "Orkestrasi & transformasi: batch ELT cuaca, model dbt inkremental (Quake Warehouse)." },
+      { name: "Spark & Kafka", level: 3, category: "Data", note: "Streaming real-time, lakehouse Delta Lake, CDC dengan Debezium." },
       { name: "Docker / Rancher", level: 3, category: "DevOps" },
       { name: "Payroll & HRIS", level: 5, category: "Domain", note: "PPh 21, BPJS, pensiun, koperasi, piutang, proration." },
       { name: "LLM & AI Integration", level: 3, category: "Data", note: "LLM lokal (Ollama): ekstraksi dokumen, Text-to-SQL, validasi hasil AI." },
@@ -153,6 +153,40 @@
           "dan lakehouse NYC Taxi bronze → silver → gold (PySpark, Delta Lake, quality gate, time travel).",
         tech: ["Python", "Airflow", "dbt", "Spark", "Kafka", "Delta Lake", "PostgreSQL", "Docker"],
         link: "https://github.com/dinulimann/dataen",
+      },
+      {
+        name: "Retail Analytics — 1 Juta Transaksi Nyata",
+        desc:
+          "Analisis dataset UCI Online Retail II (1.067.371 baris): pembersihan data yang teruji (termasuk pesanan salah input 80.995 unit), " +
+          "analisis SQL (cohort, RFM, market basket), dashboard Metabase yang dibuat lewat kode, dan laporan temuan: " +
+          "25% pelanggan menyumbang 70% pendapatan.",
+        tech: ["Python", "Pandas", "PostgreSQL", "SQL", "Metabase"],
+        link: "https://github.com/dinulimann/retail-analytics",
+      },
+      {
+        name: "Otomasi Laporan Excel",
+        desc:
+          "File Excel penjualan dari 6 cabang dengan format berbeda-beda dibaca otomatis, dibersihkan dan divalidasi, dimuat ke PostgreSQL, " +
+          "lalu laporan Excel + PDF dikirim lewat email ke manajemen, dan tiap cabang menerima baris yang harus diperbaiki.",
+        tech: ["Python", "openpyxl", "PostgreSQL", "ReportLab", "RapidFuzz"],
+        link: "https://github.com/dinulimann/excel-report-automation",
+      },
+      {
+        name: "Quake Warehouse — ELT Inkremental dengan dbt",
+        desc:
+          "ELT dari API gempa USGS yang live: landing zone, raw append-only menyimpan setiap revisi data, model dbt inkremental di DuckDB " +
+          "(target BigQuery siap), 23 data test per build. Tiga bug yang hanya muncul di data nyata ditemukan dan diberi test.",
+        tech: ["Python", "dbt", "DuckDB", "SQL", "GitHub Actions"],
+        link: "https://github.com/dinulimann/quake-warehouse",
+      },
+      {
+        name: "CDC Pipeline — Debezium + Kafka",
+        desc:
+          "Change data capture dari PostgreSQL operasional ke database analitik secara near real-time (lag p50 ±1 detik). " +
+          "Idempoten berdasarkan LSN, riwayat semua perubahan, evolusi skema otomatis. Diuji dengan skenario chaos " +
+          "(consumer crash, Debezium restart, kolom baru) dan dicek identik baris per baris di CI.",
+        tech: ["Debezium", "Kafka", "PostgreSQL", "Python", "Docker"],
+        link: "https://github.com/dinulimann/cdc-pipeline",
       },
       {
         name: "Naver SmartStore Scraper API",
@@ -432,8 +466,8 @@
       { name: "ETL & Data Integration", note: "Oracle → PostgreSQL → payroll → Oracle journal." },
       { note: "Payslips and payroll reports." },
       {}, {},
-      { note: "Orchestration & transformation in the batch ELT project." },
-      { note: "Real-time streaming & Delta Lake lakehouse." },
+      { note: "Orchestration & transformation: weather batch ELT, incremental dbt models (Quake Warehouse)." },
+      { note: "Real-time streaming, Delta Lake lakehouse, CDC with Debezium." },
       {},
       { note: "PPh 21 income tax, BPJS, pension, cooperative, receivables, proration." },
       { note: "Local LLMs (Ollama): document extraction, Text-to-SQL, validating AI output." },
@@ -462,6 +496,28 @@
           "batch ELT of weather data for 10 Indonesian cities (Airflow, MinIO, PostgreSQL, dbt, Metabase), " +
           "real-time e-commerce order streaming (Kafka, Spark Structured Streaming with watermarks, dead-letter queue, Grafana), " +
           "and an NYC Taxi bronze → silver → gold lakehouse (PySpark, Delta Lake, quality gates, time travel).",
+      },
+      {
+        desc:
+          "Analysis of the UCI Online Retail II dataset (1,067,371 lines): tested data cleaning (including an 80,995-unit order entered by mistake), " +
+          "SQL analysis (cohorts, RFM, market basket), a Metabase dashboard built from code, and a findings report: " +
+          "25% of customers bring 70% of revenue.",
+      },
+      {
+        desc:
+          "Sales spreadsheets from 6 branches, each in a different layout, are read automatically, cleaned and validated, loaded into PostgreSQL, " +
+          "then an Excel + PDF report is emailed to management and each branch receives the rows it needs to fix.",
+      },
+      {
+        desc:
+          "ELT from the live USGS earthquake API: landing zone, append-only raw that keeps every revision, incremental dbt models on DuckDB " +
+          "(BigQuery target ready), 23 data tests per build. Three bugs that only real data reveals were found and covered by tests.",
+      },
+      {
+        desc:
+          "Change data capture from an operational PostgreSQL into an analytics database in near real time (p50 lag about 1 s). " +
+          "Idempotent by LSN, full change history, automatic schema evolution. Chaos-tested (consumer crash, Debezium restart, new column) " +
+          "and verified row by row in CI.",
       },
       {
         desc:
