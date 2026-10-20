@@ -147,7 +147,7 @@
           "streaming pesanan e-commerce real-time (Kafka, Spark Structured Streaming dengan watermark, dead-letter queue, Grafana), " +
           "dan lakehouse NYC Taxi bronze → silver → gold (PySpark, Delta Lake, quality gate, time travel).",
         tech: ["Python", "Airflow", "dbt", "Spark", "Kafka", "Delta Lake", "PostgreSQL", "Docker"],
-        link: "",
+        link: "https://github.com/dinulimann/dataen",
       },
       {
         name: "Naver SmartStore Scraper API",
@@ -196,7 +196,7 @@
           "Aplikasi e-commerce fullstack: backend Go dengan autentikasi JWT, manajemen produk & stok, alamat, " +
           "pembayaran Midtrans, dan dashboard admin; frontend React.",
         tech: ["Go", "Gin", "GORM", "PostgreSQL", "React", "JWT"],
-        link: "",
+        link: "https://github.com/dinulimann/goback",
       },
       {
         name: "Job Market Analytics",
@@ -212,13 +212,13 @@
           "Chatbot untuk tanya-jawab dengan dokumen sendiri (PDF, Word, TXT) memakai Retrieval-Augmented Generation " +
           "dan respons streaming. Seluruh stack gratis.",
         tech: ["Next.js", "TypeScript", "LangChain.js", "ChromaDB", "Groq (Llama 3.1)"],
-        link: "",
+        link: "https://github.com/dinulimann/botto",
       },
       {
         name: "Toko Syuhada — Website Toko Sepeda",
         desc: "Website katalog & penjualan sepeda dengan filter kategori, pencarian produk, detail spesifikasi, dan artikel.",
         tech: ["Next.js", "TypeScript", "Prisma", "PostgreSQL", "Tailwind CSS"],
-        link: "",
+        link: "https://github.com/dinulimann/sepedasyuhada",
       },
       {
         name: "Eksperimen Machine Learning",
