@@ -35,8 +35,9 @@
         "dari 10 menit menjadi kurang dari 1 menit lewat optimasi stored procedure.",
       "Saya senang dengan pekerjaan yang dekat dengan data: ETL/ELT, data warehouse, dan otomasi. " +
         "Belakangan saya juga aktif mengeksplorasi AI coding agents seperti Claude Code, Codex, dan MCP. " +
-        "Di luar pekerjaan, saya membangun proyek portofolio terbuka: ekstraksi dokumen dan Text-to-SQL dengan LLM lokal, " +
-        "checkout Midtrans yang tahan webhook bermasalah, hingga pipeline data dengan Airflow, Kafka, dan Spark.",
+        "Di luar pekerjaan, saya membangun proyek portofolio terbuka: ekstraksi dokumen, Text-to-SQL dan RAG dengan LLM lokal, " +
+        "checkout Midtrans yang tahan webhook bermasalah, pipeline data dengan Airflow, Kafka, Spark dan AWS/Terraform, " +
+        "hingga model forecast yang dipantau dan dilatih ulang di produksi.",
     ],
 
     facts: [
@@ -223,6 +224,42 @@
           "tanpa satu pun alarm gagal palsu.",
         tech: ["Python", "DuckDB", "dbt", "SQL"],
         link: "https://github.com/dinulimann/data-quality-monitor",
+      },
+      {
+        name: "Tanya-Jawab Peraturan Pemerintah (RAG)",
+        desc:
+          "Asisten tanya-jawab PP 35/2021 dan PP 36/2021 beserta perubahannya (PDF resmi peraturan.go.id); setiap jawaban mengutip pasalnya. " +
+          "Pencarian hibrida pgvector + full-text, LLM lokal lewat Ollama. Dievaluasi 30 soal: 25/25 fakta benar, " +
+          "5/5 pertanyaan di luar aturan ditolak, nol kutipan palsu.",
+        tech: ["Python", "PostgreSQL", "pgvector", "Ollama", "FastAPI"],
+        link: "https://github.com/dinulimann/rag-regulations",
+      },
+      {
+        name: "Pipeline API → Data Warehouse",
+        desc:
+          "Menarik data dari API toko (paginasi, rate limit 429, error 500, data yang berubah belakangan) dan kurs ECB asli " +
+          "secara incremental dengan dlt ke DuckDB, lalu dimodelkan dengan dbt (28 test). Hasilnya dicocokkan dengan kunci jawaban; " +
+          "tiga bug nyata ditemukan dan diperbaiki.",
+        tech: ["Python", "dlt", "dbt", "DuckDB"],
+        link: "https://github.com/dinulimann/api-to-warehouse",
+      },
+      {
+        name: "Pipeline Serverless AWS dengan Terraform",
+        desc:
+          "File CSV masuk ke S3, Lambda memvalidasi tiap baris: data bersih ke data lake terpartisi per tanggal, baris rusak dikarantina, " +
+          "angka harian di DynamoDB (tidak dobel saat retry), kegagalan ke SQS dead-letter queue, laporan harian lewat EventBridge. " +
+          "Semua dengan Terraform dan IAM hak akses minimal; 29 tes berjalan di LocalStack dan CI.",
+        tech: ["AWS", "Terraform", "Python", "LocalStack"],
+        link: "https://github.com/dinulimann/aws-terraform-pipeline",
+      },
+      {
+        name: "MLOps: Model Forecast di Produksi",
+        desc:
+          "Model LightGBM untuk 3.049 produk Walmart dilayani lewat API dengan registry MLflow, dipantau (kualitas data, drift, akurasi, bias) " +
+          "dan dilatih ulang otomatis lewat gate. Setahun operasi diputar ulang: model hasil retrain 4–6% lebih akurat per produk, " +
+          "insiden harga 'dalam sen' tertangkap di hari yang sama. Dashboard Grafana + Prometheus.",
+        tech: ["Python", "LightGBM", "MLflow", "FastAPI", "Grafana"],
+        link: "https://github.com/dinulimann/mlops-forecast-serving",
       },
       {
         name: "Naver SmartStore Scraper API",
@@ -429,8 +466,9 @@
         "1 minute by optimizing stored procedures.",
       "I enjoy work that sits close to data: ETL/ELT, data warehousing and automation. Lately I've also " +
         "been actively exploring AI coding agents such as Claude Code, Codex and MCP. Outside work I build open " +
-        "portfolio projects: document extraction and Text-to-SQL with local LLMs, a Midtrans checkout that survives " +
-        "misbehaving webhooks, and data pipelines with Airflow, Kafka and Spark.",
+        "portfolio projects: document extraction, Text-to-SQL and RAG with local LLMs, a Midtrans checkout that survives " +
+        "misbehaving webhooks, data pipelines with Airflow, Kafka, Spark and AWS/Terraform, and a forecast model that is " +
+        "monitored and retrained in production.",
     ],
 
     facts: [
@@ -578,6 +616,33 @@
           "Data quality monitoring for a warehouse of USGS earthquake data: freshness, volume, distribution drift (PSI), schema, " +
           "reconciliation, Slack alerts on status changes, and an HTML report. Tested with 8 injected incidents and replayed over " +
           "76 days of real data without a single false failure.",
+      },
+      {
+        name: "Government Regulation Q&A (RAG)",
+        desc:
+          "Q&A over Indonesian regulations PP 35/2021 and PP 36/2021 with their amendments (official PDFs); every answer cites its article. " +
+          "Hybrid search with pgvector and full-text, a local LLM via Ollama. Evaluated on 30 questions: 25/25 facts correct, " +
+          "5/5 out-of-scope questions refused, zero invented citations.",
+      },
+      {
+        name: "API → Data Warehouse Pipeline",
+        desc:
+          "Incremental loads from a shop API (pagination, 429 rate limits, 500 errors, late-arriving changes) and real ECB exchange rates " +
+          "with dlt into DuckDB, modelled with dbt (28 tests). The result is checked against ground truth; three real bugs found and fixed.",
+      },
+      {
+        name: "Serverless AWS Pipeline with Terraform",
+        desc:
+          "CSV files land in S3 and a Lambda validates every row: clean data to a date-partitioned lake, bad rows quarantined, " +
+          "daily counters in DynamoDB (no double counting on retries), failures to an SQS dead-letter queue, a daily report via EventBridge. " +
+          "All in Terraform with least-privilege IAM; 29 tests run on LocalStack and in CI.",
+      },
+      {
+        name: "MLOps: Forecast Model in Production",
+        desc:
+          "A LightGBM model for 3,049 Walmart products served through an API with an MLflow registry, monitored (data quality, drift, " +
+          "accuracy, bias) and retrained automatically behind a gate. A year of operations replayed: retrained models were 4–6% more " +
+          "accurate per product, and a prices-in-cents incident was caught the same day. Grafana + Prometheus dashboards.",
       },
       {
         desc:
